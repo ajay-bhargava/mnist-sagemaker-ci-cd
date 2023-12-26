@@ -1,0 +1,32 @@
+{
+  "template": "https://github.com/ajay-bhargava/poetry-cookiecutter",
+  "commit": "29bc3b0f93667e325b315015100a2e85b94d189d",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "package_name": "mnist-sagemaker-ci-cd",
+      "package_description": "The intent of this repository is to define CI/CD workflows for Sagemaker to train a model then deploy it using FASTAPI on App Runner. ",
+      "package_url": "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd",
+      "author_name": "ajay-bhargava",
+      "author_email": "bhargava.ajay@gmail.com",
+      "python_version": "3.11",
+      "docker_image": "python:$PYTHON_VERSION-slim",
+      "development_environment": "simple",
+      "with_conventional_commits": "0",
+      "with_fastapi_api": "1",
+      "with_jupyter_lab": "1",
+      "with_pydantic_typing": "0",
+      "with_sentry_logging": "0",
+      "with_streamlit_app": "0",
+      "with_typer_cli": "0",
+      "continuous_integration": "GitHub",
+      "docstring_style": "Google",
+      "private_package_repository_name": "",
+      "private_package_repository_url": "",
+      "__package_name_kebab_case": "mnist-sagemaker-ci-cd",
+      "__package_name_snake_case": "mnist_sagemaker_ci_cd",
+      "_template": "https://github.com/ajay-bhargava/poetry-cookiecutter"
+    }
+  },
+  "directory": null
+}
