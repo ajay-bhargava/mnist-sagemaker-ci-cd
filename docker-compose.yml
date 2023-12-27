@@ -49,5 +49,15 @@ services:
     profiles:
       - app
 
+  sagemaker:
+    build:
+      context: .
+      target: sagemaker
+    tty: true
+    ports:
+      - "8000:8000"
+    profiles:
+      - sagemaker
+
 volumes:
   command-history-volume:

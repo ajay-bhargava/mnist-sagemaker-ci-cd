@@ -1,5 +1,10 @@
 # syntax=docker/dockerfile:1
 ARG PYTHON_VERSION=3.11
+
+###
+# This is where the base image is defined. 
+### 
+
 FROM python:$PYTHON_VERSION-slim AS base
 
 # Remove docker-clean so we can keep the apt cache in Docker build cache.
@@ -24,12 +29,16 @@ WORKDIR /workspaces/mnist-sagemaker-ci-cd/
 
 
 
-FROM base as poetry
+###
+# This is where all poetry is specified and ready to be installed.
+### 
+
+FROM base as setup
 
 USER root
 
 # Install Poetry in separate venv so it doesn't pollute the main venv.
-ENV POETRY_VERSION 1.6.1
+ENV POETRY_VERSION 1.7
 ENV POETRY_VIRTUAL_ENV /opt/poetry-env
 RUN --mount=type=cache,target=/root/.cache/pip/ \
     python -m venv $POETRY_VIRTUAL_ENV && \
@@ -44,6 +53,12 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
 
 USER user
 
+###
+# This is where poetry main dependencies are installed.
+### 
+
+FROM setup as poetry
+
 # Install the run time Python dependencies in the virtual environment.
 COPY --chown=user:user poetry.lock* pyproject.toml /workspaces/mnist-sagemaker-ci-cd/
 RUN mkdir -p /home/user/.cache/pypoetry/ && mkdir -p /home/user/.config/pypoetry/ && \
@@ -52,6 +67,10 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
     poetry install --only main --no-interaction
 
 
+
+###
+# This is where the Dev Container (VSCode) is defined.
+### 
 
 FROM poetry as dev
 
@@ -93,7 +112,48 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
+###
+# This is where the Sagemaker container is specified.
+### 
 
+ARG REGION=us-east-1
+
+FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker AS sagemaker
+
+###
+# This is where the Sagemaker training container is defined.
+### 
+
+# Copy the virtual environment from the setup stage.
+COPY --from=setup $VIRTUAL_ENV $VIRTUAL_ENV
+
+# Run poetry install to install the sagemaker runtime dependencies as non-root.
+COPY --chown=user:user poetry.lock* pyproject.toml /workspaces/mnist-sagemaker-ci-cd/
+RUN mkdir -p /home/user/.cache/pypoetry/ && mkdir -p /home/user/.config/pypoetry/ && \
+    mkdir -p src/mnist_sagemaker_ci_cd/ && touch src/mnist_sagemaker_ci_cd/__init__.py && touch README.md
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
+    poetry install --only main,sagemaker-train --no-interaction
+
+# Copy the package source code to the working directory.
+COPY --chown=user:user . .
+
+# search for executables here before searching in other directories
+ENV PATH="/opt/ml/code:${PATH}"
+
+# /opt/ml and all subdirectories are used by sagemaker, we will copy the code into /opt/ml/code as per sagemaker requirements
+COPY /src/mnist_sagemaker_ci_cd /opt/ml/code
+
+# Define Sagemaker Pytorch container environment variables to determine the user code directory
+ENV SAGEMAKER_SUBMIT_DIRECTORY /opt/ml/code
+
+# This is where SageMaker will look to find the entry script for training
+ENV SAGEMAKER_PROGRAM train.py
+
+
+
+###
+# This is where the FastAPI application is defined for AppRunner.
+### 
 
 FROM base AS app
 
