@@ -4,6 +4,9 @@
   "service": "devcontainer",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/",
   "remoteUser": "user",
+  "mounts": [
+    "source=${localEnv:HOME}/.aws,target=/home/user/.aws,type=bind,consistency=cached"
+  ],
   "overrideCommand": true,
   "postStartCommand": "cp --update /opt/build/poetry/poetry.lock /workspaces/${localWorkspaceFolderBasename}/ && mkdir -p /workspaces/${localWorkspaceFolderBasename}/.git/hooks/ && cp --update /opt/build/git/* /workspaces/${localWorkspaceFolderBasename}/.git/hooks/",
   "customizations": {

@@ -73,13 +73,10 @@ USER root
 RUN --mount=type=cache,target=/var/cache/apt/ \
     --mount=type=cache,target=/var/lib/apt/ \
     apt-get update && \
-    apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh && \
+    apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh awscli && \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
-    sh -c "$(curl -fsSL https://get.pulumi.com)" && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
-
-ENV PATH="/home/user/.pulumi/bin:${PATH}"
 
 USER user
 
@@ -91,7 +88,10 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
 COPY --chown=user:user .pre-commit-config.yaml /workspaces/mnist-sagemaker-ci-cd/
 RUN mkdir -p /opt/build/poetry/ && cp poetry.lock /opt/build/poetry/ && \
     git init && pre-commit install --install-hooks && \
-    mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/
+    mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/ && \
+    sh -c "$(curl -fsSL https://get.pulumi.com)"
+
+ENV PATH="/home/user/.pulumi/bin:${PATH}"
 
 # Configure the non-root user's shell.
 ENV ANTIDOTE_VERSION 1.8.6
