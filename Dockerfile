@@ -69,19 +69,20 @@ FROM poetry as dev
 
 USER root
 
-# Install development tools.
+# Install development tools inclusive of Pulumi (for training and Sagemaker)
 RUN --mount=type=cache,target=/var/cache/apt/ \
     --mount=type=cache,target=/var/lib/apt/ \
     apt-get update && \
     apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh && \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
+    sh -c "$(curl -fsSL https://get.pulumi.com)" && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
 USER user
 
-# Install development Python dependencies in the virtual environment.
+# Install development Python dependencies in the virtual environment (including sagemaker training dependencies which are optional)
 RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
-    poetry install --no-interaction
+    poetry install --with training --no-interaction
 
 # Persist output generated during docker build for the dev container.
 COPY --chown=user:user .pre-commit-config.yaml /workspaces/mnist-sagemaker-ci-cd/

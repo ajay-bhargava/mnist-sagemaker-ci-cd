@@ -36,6 +36,7 @@ services:
       - ~/.gitconfig:/etc/gitconfig
       - ~/.ssh/known_hosts:/home/user/.ssh/known_hosts
       - ${SSH_AGENT_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/run/host-services/ssh-auth.sock
+      - $HOME/.aws/credentials:/home/app/.aws/credentials:ro
     profiles:
       - dev
 
