@@ -15,7 +15,7 @@ coloredlogs = ">=15.0.1"
 fastapi = { extras = ["all"], version = ">=0.92.0" }
 gunicorn = ">=20.1.0"
 poethepoet = ">=0.20.0"
-python = ">=3.11,<4.0"
+python = ">=3.10,<4.0"
 uvicorn = { extras = ["standard"], version = ">=0.20.0" }
 
 [tool.poetry.group.test.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
@@ -33,10 +33,11 @@ cruft = ">=2.14.0"
 jupyterlab = ">=3.6.3"
 pdoc = ">=13.1.1"
 
-[tool.poetry.group.sagemaker]  # https://python-poetry.org/docs/master/managing-dependencies/
+[tool.poetry.group.training]  # https://python-poetry.org/docs/master/managing-dependencies/
 optional = true
 
-[tool.poetry.group.sagemaker.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
+[tool.poetry.group.training.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
+sagemaker-training = ">=4.7.0"
 bertopic = ">=0.16"
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
