@@ -78,6 +78,9 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
     sh -c "$(curl -fsSL https://get.pulumi.com)" && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
+
+ENV PATH="/home/user/.pulumi/bin:${PATH}"
+
 USER user
 
 # Install development Python dependencies in the virtual environment (including sagemaker training dependencies which are optional)
@@ -104,6 +107,7 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     echo 'setopt share_history' >> ~/.zshrc && \
     echo 'bindkey "^[[A" history-beginning-search-backward' >> ~/.zshrc && \
     echo 'bindkey "^[[B" history-beginning-search-forward' >> ~/.zshrc && \
+    echo 'export PATH="/home/user/.pulumi/bin:$PATH"' >> ~/.zshrc && \
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
