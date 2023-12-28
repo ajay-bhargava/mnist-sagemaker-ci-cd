@@ -1,52 +1,66 @@
 {
-    "name": "mnist-sagemaker-ci-cd",
-    "dockerComposeFile": "../docker-compose.yml",
-    "service": "devcontainer",
-    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/",
-    "remoteUser": "user",
-    "overrideCommand": true,
-    "postStartCommand": "cp --update /opt/build/poetry/poetry.lock /workspaces/${localWorkspaceFolderBasename}/ && mkdir -p /workspaces/${localWorkspaceFolderBasename}/.git/hooks/ && cp --update /opt/build/git/* /workspaces/${localWorkspaceFolderBasename}/.git/hooks/",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "charliermarsh.ruff",
-                "ms-python.mypy-type-checker",
-                "ms-python.python",
-                "ms-toolsai.jupyter",
-                "ryanluker.vscode-coverage-gutters",
-                "tamasfe.even-better-toml",
-                "visualstudioexptteam.vscodeintellicode"
-            ],
-            "settings": {
-                "coverage-gutters.coverageFileNames": [
-                    "reports/coverage.xml"
-                ],
-                "editor.codeActionsOnSave": {
-                    "source.fixAll": true,
-                    "source.organizeImports": true
-                },
-                "editor.formatOnSave": true,
-                "[python]": {
-                    "editor.defaultFormatter": "charliermarsh.ruff"
-                },
-                "[toml]": {
-                    "editor.formatOnSave": false
-                },
-                "editor.rulers": [
-                ],
-                "files.autoSave": "onFocusChange",
-                "mypy-type-checker.importStrategy": "fromEnvironment",
-                "python.defaultInterpreterPath": "/opt/mnist-sagemaker-ci-cd-env/bin/python",
-                "python.terminal.activateEnvironment": false,
-                "python.testing.pytestEnabled": true,
-                "ruff.importStrategy": "fromEnvironment",
-                "terminal.integrated.defaultProfile.linux": "zsh",
-                "terminal.integrated.profiles.linux": {
-                    "zsh": {
-                        "path": "/usr/bin/zsh"
-                    }
-                }
-            }
+  "name": "mnist-sagemaker-ci-cd",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/",
+  "remoteUser": "user",
+  "overrideCommand": true,
+  "postStartCommand": "cp --update /opt/build/poetry/poetry.lock /workspaces/${localWorkspaceFolderBasename}/ && mkdir -p /workspaces/${localWorkspaceFolderBasename}/.git/hooks/ && cp --update /opt/build/git/* /workspaces/${localWorkspaceFolderBasename}/.git/hooks/",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "esbenp.prettier-vscode",
+        "euskadi31.json-pretty-printer",
+        "freetonik.day-night-theme-switcher",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "github.vscode-github-actions",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker",
+        "ms-python.black-formatter",
+        "ms-python.mypy-type-checker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.vscode-jupyter-slideshow",
+        "ms-vscode.live-server",
+        "ryanluker.vscode-coverage-gutters",
+        "tamasfe.even-better-toml",
+        "VisualStudioExptTeam.intellicode-api-usage-examples",
+        "VisualStudioExptTeam.vscodeintellicode",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "coverage-gutters.coverageFileNames": ["reports/coverage.xml"],
+        "editor.codeActionsOnSave": {
+          "source.fixAll": true,
+          "source.organizeImports": true
+        },
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[toml]": {
+          "editor.formatOnSave": false
+        },
+        "editor.rulers": [],
+        "files.autoSave": "onFocusChange",
+        "mypy-type-checker.importStrategy": "fromEnvironment",
+        "python.defaultInterpreterPath": "/opt/mnist-sagemaker-ci-cd-env/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "python.testing.pytestEnabled": true,
+        "ruff.importStrategy": "fromEnvironment",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
         }
+      }
     }
+  }
 }
