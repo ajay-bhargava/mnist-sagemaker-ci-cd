@@ -5,7 +5,7 @@
 
 # syntax=docker/dockerfile:1
 ARG PYTHON_VERSION=3.11
-FROM radixai/python-gpu:3.11-cuda11.8 AS base
+FROM python:$PYTHON_VERSION-slim AS base
 
 # Remove docker-clean so we can keep the apt cache in Docker build cache.
 RUN rm /etc/apt/apt.conf.d/docker-clean
