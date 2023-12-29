@@ -69,7 +69,6 @@ FROM poetry as dev
 
 USER root
 
-# Install development tools inclusive of Pulumi (for training and Sagemaker)
 RUN --mount=type=cache,target=/var/cache/apt/ \
     --mount=type=cache,target=/var/lib/apt/ \
     apt-get update && \
@@ -88,10 +87,7 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
 COPY --chown=user:user .pre-commit-config.yaml /workspaces/mnist-sagemaker-ci-cd/
 RUN mkdir -p /opt/build/poetry/ && cp poetry.lock /opt/build/poetry/ && \
     git init && pre-commit install --install-hooks && \
-    mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/ && \
-    sh -c "$(curl -fsSL https://get.pulumi.com)"
-
-ENV PATH="/home/user/.pulumi/bin:${PATH}"
+    mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/
 
 # Configure the non-root user's shell.
 ENV ANTIDOTE_VERSION 1.8.6
@@ -107,7 +103,6 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     echo 'setopt share_history' >> ~/.zshrc && \
     echo 'bindkey "^[[A" history-beginning-search-backward' >> ~/.zshrc && \
     echo 'bindkey "^[[B" history-beginning-search-forward' >> ~/.zshrc && \
-    echo 'export PATH="/home/user/.pulumi/bin:$PATH"' >> ~/.zshrc && \
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
