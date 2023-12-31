@@ -178,11 +178,8 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/opt/.cache/pypoetry/ \
 
 USER user
 
-# Copy the package source code to the working directory.
-COPY --chown=user:user src/mnist_sagemaker_ci_cd/ /opt/ml/code/
-
 # Define Sagemaker Pytorch container environment variables to determine the user code directory
 ENV SAGEMAKER_SUBMIT_DIRECTORY /opt/ml/code
 
 # This is where SageMaker will look to find the entry script for training
-ENV SAGEMAKER_PROGRAM train.py
+ENV SAGEMAKER_PROGRAM src/mnist_sagemaker_ci_cd/fit.py

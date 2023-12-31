@@ -36,11 +36,9 @@ def _train(args):
     logger.info(f"BERTtopic Model loaded for language {args.language}")
 
     print("Loading Training data")
-    docs = []
     print(f"data_dir: {args.data_dir}")
     with open(args.data_dir + "/training_file.txt") as file:
-        for line in file:
-            docs.append(line.rstrip())
+        docs = [line.rstrip() for line in file]
 
     print("Started Training")
     topics, probs = model.fit_transform(docs)
