@@ -1,15 +1,16 @@
 """Module description goes here."""
 import os
 
+import boto3
 import sagemaker
 from sagemaker.estimator import Estimator
 
-session = sagemaker.LocalSession()
+session = sagemaker.Session(boto3.Session(region_name="us-east-1"))
 
 # AWS Variables
 IAM_ROLE = "arn:aws:iam::220582896887:role/programmatic-aws-sagemaker-role-access"
 ACCOUNT_ID = session.boto_session.client("sts").get_caller_identity()["Account"]
-TRAINING_INSTANCE = "local"
+TRAINING_INSTANCE = "ml.m5.large"
 
 # Github Actions Variables
 GITHUB_REF_NAME = os.environ.get("GITHUB_REF_NAME", "development-training")
@@ -18,7 +19,7 @@ GITHUB_REPOSITORY = os.environ.get(
     "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
 )
 GITHUB_ACTOR = os.environ.get("GITHUB_ACTOR", "ajay-bhargava")
-OUTPUT_S3_URI = f"s3://with-context-sagemaker/fits/bert-topic/{GITHUB_REF_NAME}/{GITHUB_SHA}"
+OUTPUT_S3_URI = f"s3://with-context-sagemaker/fits/bert-topic/{GITHUB_REF_NAME}/"
 GITHUB_PAT = os.environ.get(
     "GITHUB_PAT",
     "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",
@@ -34,13 +35,15 @@ hyperparameters: dict[str, str] = {
 
 # Define Estimator
 estimator = Estimator(
-    image_uri=f"{ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sagemaker-ecr-bert-topic-example:latest",  # 220582896887.dkr.ecr.us-east-1.amazonaws.com/sagemaker-ecr-bert-topic-example:latest
+    image_uri=f"{ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sagemaker-ecr-bert-topic-example:latest",
     role=IAM_ROLE,
     instance_count=1,
+    entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
     instance_type=TRAINING_INSTANCE,
     hyperparameters=hyperparameters,  # type: ignore
+    base_job_name=OUTPUT_S3_URI,
     output_path=OUTPUT_S3_URI,
-    entry_point="src/mnist_sagemaker_ci_cd/fit.py",  # "src/mnist_sagemaker_ci_cd/train.py
+    code_location=OUTPUT_S3_URI,
     sagemaker_session=session,
     git_config={
         "repo": GITHUB_REPOSITORY,
@@ -50,4 +53,4 @@ estimator = Estimator(
     },
 )
 
-estimator.fit(ESTIMATOR_DATASET_S3_URI)
+estimator.fit(ESTIMATOR_DATASET_S3_URI, job_name=f"{GITHUB_SHA[:7]}")

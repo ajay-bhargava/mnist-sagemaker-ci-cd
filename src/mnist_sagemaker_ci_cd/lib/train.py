@@ -15,6 +15,7 @@ import argparse
 import ast
 import logging
 import os
+import sys
 
 import torch
 from bertopic import BERTopic
@@ -73,3 +74,5 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
     _train(parser.parse_args())
+
+    sys.exit()

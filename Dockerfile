@@ -177,9 +177,3 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/opt/.cache/pypoetry/ \
     poetry install --only main,training --no-interaction
 
 USER user
-
-# Define Sagemaker Pytorch container environment variables to determine the user code directory
-ENV SAGEMAKER_SUBMIT_DIRECTORY /opt/ml/code
-
-# This is where SageMaker will look to find the entry script for training
-ENV SAGEMAKER_PROGRAM src/mnist_sagemaker_ci_cd/fit.py
