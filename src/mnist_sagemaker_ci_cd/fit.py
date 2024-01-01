@@ -14,7 +14,7 @@ TRAINING_INSTANCE = "ml.m5.large"
 
 # Github Actions Variables
 GITHUB_REF_NAME = os.environ.get("GITHUB_REF_NAME", "development-training")
-GITHUB_SHA = os.environ.get("GITHUB_SHA", "1924a7baa305519c96d186903644216fda399ecc")
+GITHUB_SHA = os.environ.get("GITHUB_SHA", "1925a7baa305519c96d186903644216fda399ecc")
 GITHUB_REPOSITORY = os.environ.get(
     "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
 )
@@ -46,13 +46,13 @@ estimator = Estimator(
     output_path=OUTPUT_S3_URI,
     code_location=OUTPUT_S3_URI,
     sagemaker_session=session,
-    dependencies=["requirements.txt"],
-    # git_config={
-    #     "repo": GITHUB_REPOSITORY,
-    #     "branch": GITHUB_REF_NAME,
-    #     "username": GITHUB_ACTOR,
-    #     "token": GITHUB_PAT,
-    # },
+    dependencies=["training-requirements.txt"],
+    git_config={
+        "repo": GITHUB_REPOSITORY,
+        "branch": GITHUB_REF_NAME,
+        "username": GITHUB_ACTOR,
+        "token": GITHUB_PAT,
+    },
 )
 
 estimator.fit(ESTIMATOR_DATASET_S3_URI, job_name=f"{GITHUB_SHA[:7]}")

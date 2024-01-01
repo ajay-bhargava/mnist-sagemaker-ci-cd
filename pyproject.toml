@@ -17,6 +17,7 @@ gunicorn = ">=20.1.0"
 poethepoet = ">=0.20.0"
 python = ">=3.10,<4.0"
 uvicorn = { extras = ["standard"], version = ">=0.20.0" }
+poetry-plugin-export = "^1.6.0"
 
 
 [tool.poetry.group.test.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
@@ -189,3 +190,9 @@ convention = "google"
 
     [[tool.poe.tasks.test.sequence]]
     cmd = "coverage xml"
+
+  [tool.poe.tasks.train]
+  help = "Generate requirements.txt for Sagemaker Training Job"
+
+    [[tool.poe.tasks.train.sequence]]
+    cmd = "poetry export --only training --without-hashes -f requirements.txt -o training-requirements.txt"

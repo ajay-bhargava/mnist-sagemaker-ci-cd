@@ -1,7 +1,12 @@
-###
-# Base Stage
-# Setting up the base image with Python and creating a non-root user.
-###
+##########################
+#   ____                 
+#  |  _ \                
+#  | |_) | __ _ ___  ___ 
+#  |  _ < / _` / __|/ _ \
+#  | |_) | (_| \__ \  __/
+#  |____/ \__,_|___/\___|
+#                                      
+##########################
 
 # syntax=docker/dockerfile:1
 ARG PYTHON_VERSION=3.11
@@ -26,11 +31,16 @@ RUN python -m venv $VIRTUAL_ENV
 # Set the working directory.
 WORKDIR /workspaces/mnist-sagemaker-ci-cd/
 
-
-###
-# Poetry Stage
-# Installing Poetry and runtime Python dependencies.
-###
+####################################
+#   _____           _              
+#  |  __ \         | |             
+#  | |__) |__   ___| |_ _ __ _   _ 
+#  |  ___/ _ \ / _ \ __| '__| | | |
+#  | |  | (_) |  __/ |_| |  | |_| |
+#  |_|   \___/ \___|\__|_|   \__, |
+#                             __/ |
+#                            |___/ 
+####################################
 
 FROM base as poetry
 
@@ -59,11 +69,19 @@ RUN mkdir -p /home/user/.cache/pypoetry/ && mkdir -p /home/user/.config/pypoetry
 RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
     poetry install --only main --no-interaction
 
-
-###
-# Development Stage
-# Installing development tools and configuring the user's shell.
-###
+################################################################
+#  __      _______  _____          _        _____             
+#  \ \    / / ____|/ ____|        | |      |  __ \            
+#   \ \  / / (___ | |     ___   __| | ___  | |  | | _____   __
+#    \ \/ / \___ \| |    / _ \ / _` |/ _ \ | |  | |/ _ \ \ / /
+#     \  /  ____) | |___| (_) | (_| |  __/ | |__| |  __/\ V / 
+#    __\/_ |_____/ \_____\___/ \__,_|\___| |_____/ \___| \_/  
+#   / ____|          | |      (_)                             
+#  | |     ___  _ __ | |_ __ _ _ _ __   ___ _ __              
+#  | |    / _ \| '_ \| __/ _` | | '_ \ / _ \ '__|             
+#  | |___| (_) | | | | || (_| | | | | |  __/ |                
+#   \_____\___/|_| |_|\__\__,_|_|_| |_|\___|_|      
+#################################################################       
 
 FROM poetry as dev
 
@@ -106,11 +124,16 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
-
-###
-# Application Stage
-# Preparing the application for deployment on App Runner
-###
+############################################
+#   ______        _            _____ _____ 
+#  |  ____|      | |     /\   |  __ \_   _|
+#  | |__ __ _ ___| |_   /  \  | |__) || |  
+#  |  __/ _` / __| __| / /\ \ |  ___/ | |  
+#  | | | (_| \__ \ |_ / ____ \| |    _| |_ 
+#  |_|  \__,_|___/\__/_/    \_\_|   |_____|
+#
+############################################                                        
+                                         
 
 FROM base AS app
 
@@ -123,57 +146,3 @@ COPY --chown=user:user . .
 # Expose the application.
 ENTRYPOINT ["/opt/mnist-sagemaker-ci-cd-env/bin/poe"]
 CMD ["api"]
-
-
-###
-# Sagemaker Stage
-# Preparing the application for deployment on Sagemaker Training.
-###
-
-ARG PYTHON_VERSION=3.11
-FROM radixai/python-gpu:3.11-cuda11.8 AS sagemaker-base
-
-# Remove docker-clean so we can keep the apt cache in Docker build cache.
-RUN rm /etc/apt/apt.conf.d/docker-clean
-
-# Create a non-root user and switch to it.
-ARG UID=1000
-ARG GID=$UID
-RUN groupadd --gid $GID user && \
-    useradd --create-home --gid $GID --uid $UID user --no-log-init && \
-    chown user /opt/
-USER user
-
-# Create and activate a virtual environment.
-ENV VIRTUAL_ENV /opt/poetry/
-ENV PATH $VIRTUAL_ENV/bin:$PATH
-RUN python -m venv $VIRTUAL_ENV
-
-# Set the working directory.
-WORKDIR /opt/ml/
-
-FROM sagemaker-base as sagemaker
-
-USER root
-
-# Install Poetry in a separate virtual environment.
-ENV POETRY_VERSION 1.7.0
-ENV POETRY_VIRTUAL_ENV /opt/poetry/
-RUN --mount=type=cache,target=/root/.cache/pip/ \
-    python -m venv $POETRY_VIRTUAL_ENV && \
-    $POETRY_VIRTUAL_ENV/bin/pip install poetry~=$POETRY_VERSION && \
-    ln -s $POETRY_VIRTUAL_ENV/bin/poetry /usr/local/bin/poetry
-
-# Install compilers for certain packages or platforms.
-RUN --mount=type=cache,target=/var/cache/apt/ \
-    --mount=type=cache,target=/var/lib/apt/ \
-    apt-get update && \
-    apt-get install --no-install-recommends --yes build-essential tree
-
-# Install the runtime Python dependencies in the virtual environment.
-COPY --chown=user:user poetry.lock* pyproject.toml /opt/ml/
-RUN mkdir -p /opt/.cache/pypoetry/
-RUN --mount=type=cache,uid=$UID,gid=$GID,target=/opt/.cache/pypoetry/ \
-    poetry install --only main,training --no-interaction
-
-USER user
