@@ -5,12 +5,12 @@ from sagemaker.estimator import Estimator
 
 from mnist_sagemaker_ci_cd.lib.settings import Settings
 
-session = sagemaker.Session(boto3.Session(region_name="us-east-1"))
 settings = Settings()
 
 # AWS Variables
+SESSION = sagemaker.Session(boto3.Session(region_name="us-east-1"))
 IAM_ROLE = "arn:aws:iam::220582896887:role/programmatic-aws-sagemaker-role-access"
-ACCOUNT_ID = session.boto_session.client("sts").get_caller_identity()["Account"]
+ACCOUNT_ID = SESSION.boto_session.client("sts").get_caller_identity()["Account"]
 TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # Hyperparameters
@@ -29,7 +29,7 @@ estimator = Estimator(
     base_job_name=settings.output_s3_uri,
     output_path=settings.output_s3_uri,
     code_location=settings.output_s3_uri,
-    sagemaker_session=session,
+    sagemaker_session=SESSION,
     source_dir="src/mnist_sagemaker_ci_cd/",
     dependencies=["src/mnist_sagemaker_ci_cd/deps/train/requirements.txt"],
     git_config={
