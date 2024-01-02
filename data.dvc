@@ -1,0 +1,11 @@
+outs:
+- hash: md5
+  path: data
+  files:
+  - relpath: training_data.txt
+    md5: cdc83e0a2caf1bab06f675a62da3407c
+    size: 1135229
+    cloud:
+      bert-topic:
+        etag: cdc83e0a2caf1bab06f675a62da3407c
+        version_id: rqdjZKXMWSFRN6j_nGe0MtCW8MieLGgY

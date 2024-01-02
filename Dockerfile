@@ -146,3 +146,21 @@ COPY --chown=user:user . .
 # Expose the application.
 ENTRYPOINT ["/opt/mnist-sagemaker-ci-cd-env/bin/poe"]
 CMD ["api"]
+
+################################################################
+#    _____                                  _             
+#   / ____|                                | |            
+#  | (___   __ _  __ _  ___ _ __ ___   __ _| | _____ _ __ 
+#   \___ \ / _` |/ _` |/ _ \ '_ ` _ \ / _` | |/ / _ \ '__|
+#   ____) | (_| | (_| |  __/ | | | | | (_| |   <  __/ |   
+#  |_____/ \__,_|\__, |\___|_| |_| |_|\__,_|_|\_\___|_|   
+#                 __/ |                                   
+#                |___/                                    
+#
+################################################################
+
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310 as sagemaker
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir wandb dvc"[s3]" && \
+    pip freeze
+ENV SAGEMAKER_PROGRAM entrypoint.sh

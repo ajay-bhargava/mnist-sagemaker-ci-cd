@@ -20,7 +20,7 @@ hyperparameters: dict[str, str] = {
 
 # Define Estimator
 estimator = Estimator(
-    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310",
+    image_uri="220582896887.dkr.ecr.us-east-1.amazonaws.com/mlops-sagemaker:latest",
     role=IAM_ROLE,
     instance_count=1,
     entry_point="lib/train.py",
@@ -32,12 +32,12 @@ estimator = Estimator(
     sagemaker_session=SESSION,
     source_dir="src/mnist_sagemaker_ci_cd/",
     dependencies=["src/mnist_sagemaker_ci_cd/deps/train/requirements.txt"],
-    git_config={
-        "repo": settings.github_repository,
-        "branch": settings.github_ref_name,
-        "username": settings.github_actor,
-        "token": settings.github_pat,
-    },
+    # git_config={
+    #     "repo": settings.github_repository,
+    #     "branch": settings.github_ref_name,
+    #     "username": settings.github_actor,
+    #     "token": settings.github_pat,
+    # },
 )
 
 estimator.fit(settings.estimator_dataset_s3_uri, job_name=f"{settings.github_sha[:7]}")

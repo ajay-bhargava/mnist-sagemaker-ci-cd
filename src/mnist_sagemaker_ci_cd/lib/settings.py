@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     """
 
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "development-training")
-    github_sha: str = os.environ.get("GITHUB_SHA", "1930a1baa305519c96d186903644216fda399ecc")
+    github_sha: str = os.environ.get("GITHUB_SHA", "1931a1baa305519c96d186903644216fda399ecc")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
     )
