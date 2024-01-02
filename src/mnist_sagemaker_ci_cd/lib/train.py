@@ -43,7 +43,7 @@ def retrieve_data():
             print(f"Output of '{cmd}': {stdout.decode()}")
 
 
-def _train(args):
+def _train(args, data_dir="/opt/ml/input/data"):
     logger.debug("BERTtopic training starting")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -54,10 +54,10 @@ def _train(args):
     logger.info(f"BERTtopic Model loaded for language {args.language}")
 
     logger.info("Loading Training data")
-    logger.info(f"data_dir: {args.data_dir}")
-    with open(args.data_dir + "/training_data.txt") as file:
+    logger.info(f"data_dir: {data_dir}")
+    with open(data_dir + "/training_data.txt") as file:
         docs = [line.rstrip() for line in file]
-
+    logger.info(f"Training data loaded. Number of documents: {len(docs)}")
     logger.info("Started Training")
     topics, probs = model.fit_transform(docs)
     logger.info("Finished Training")
@@ -82,15 +82,14 @@ if __name__ == "__main__":
     )
 
     # The parameters below retrieve their default values from SageMaker environment variables, which are
-    # instantiated by the SageMaker containers framework.
-    # https://github.com/aws/sagemaker-containers#how-a-script-is-executed-inside-the-container
+    # instantiated by the SageMaker containers framework. When running locally, you can set these environment variables.
+
     parser.add_argument("--hosts", type=str, default=ast.literal_eval(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
     retrieve_data()
-    _train(parser.parse_args())
+    _train(parser.parse_args(), data_dir="/opt/ml/input/data")
 
     sys.exit()
