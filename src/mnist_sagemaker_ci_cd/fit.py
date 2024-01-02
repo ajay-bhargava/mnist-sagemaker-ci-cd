@@ -38,14 +38,15 @@ estimator = Estimator(
     image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310",
     role=IAM_ROLE,
     instance_count=1,
-    entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
+    entry_point="lib/train.py",
     instance_type=TRAINING_INSTANCE,
     hyperparameters=hyperparameters,  # type: ignore
     base_job_name=OUTPUT_S3_URI,
     output_path=OUTPUT_S3_URI,
     code_location=OUTPUT_S3_URI,
     sagemaker_session=session,
-    dependencies=["training-requirements.txt"],
+    source_dir="src/mnist_sagemaker_ci_cd/",
+    dependencies=["fit-requirements.txt"],
     git_config={
         "repo": GITHUB_REPOSITORY,
         "branch": GITHUB_REF_NAME,
