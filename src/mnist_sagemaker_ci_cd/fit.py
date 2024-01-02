@@ -10,11 +10,11 @@ session = sagemaker.Session(boto3.Session(region_name="us-east-1"))
 # AWS Variables
 IAM_ROLE = "arn:aws:iam::220582896887:role/programmatic-aws-sagemaker-role-access"
 ACCOUNT_ID = session.boto_session.client("sts").get_caller_identity()["Account"]
-TRAINING_INSTANCE = "ml.m5.large"
+TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # Github Actions Variables
 GITHUB_REF_NAME = os.environ.get("GITHUB_REF_NAME", "development-training")
-GITHUB_SHA = os.environ.get("GITHUB_SHA", "1925a7baa305519c96d186903644216fda399ecc")
+GITHUB_SHA = os.environ.get("GITHUB_SHA", "1927b1baa305519c96d186903644216fda399ecc")
 GITHUB_REPOSITORY = os.environ.get(
     "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
 )
@@ -35,8 +35,7 @@ hyperparameters: dict[str, str] = {
 
 # Define Estimator
 estimator = Estimator(
-    # image_uri=f"{ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sagemaker-ecr-bert-topic-example:latest",
-    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker",
+    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310",
     role=IAM_ROLE,
     instance_count=1,
     entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
