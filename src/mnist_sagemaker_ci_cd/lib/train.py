@@ -15,6 +15,7 @@ import argparse
 import ast
 import logging
 import os
+import subprocess
 import sys
 
 import torch
@@ -24,6 +25,22 @@ JSON_CONTENT_TYPE = "application/json"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+def retrieve_data():
+    """Retrieve data from Data Version Control."""
+    # Data Version Control
+    commands = ["dvc pull", "mv data/*.* /opt/ml/input/data/"]
+
+    for cmd in commands:
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        # Check if the command was executed successfully
+        if process.returncode != 0:
+            print(f"Error executing '{cmd}': {stderr.decode()}")
+        else:
+            print(f"Output of '{cmd}': {stdout.decode()}")
 
 
 def _train(args):
@@ -38,7 +55,7 @@ def _train(args):
 
     logger.info("Loading Training data")
     logger.info(f"data_dir: {args.data_dir}")
-    with open(args.data_dir + "/training_file.txt") as file:
+    with open(args.data_dir + "/training_data.txt") as file:
         docs = [line.rstrip() for line in file]
 
     logger.info("Started Training")
@@ -73,6 +90,7 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
+    retrieve_data()
     _train(parser.parse_args())
 
     sys.exit()

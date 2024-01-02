@@ -40,4 +40,4 @@ estimator = Estimator(
     # },
 )
 
-estimator.fit(settings.estimator_dataset_s3_uri, job_name=f"{settings.github_sha[:7]}")
+estimator.fit(job_name=f"{settings.github_sha[:7]}")
