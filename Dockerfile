@@ -163,4 +163,3 @@ FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wandb dvc"[s3]" && \
     pip freeze
-ENV SAGEMAKER_PROGRAM entrypoint.sh

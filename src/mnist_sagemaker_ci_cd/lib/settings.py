@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     """
 
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "development-training")
-    github_sha: str = os.environ.get("GITHUB_SHA", "1936a1baa305519c96d186903644216fda399ecc")
+    github_sha: str = os.environ.get("GITHUB_SHA", "1938a1baa305519c96d186903644216fda399ecc")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
     )
@@ -33,7 +33,6 @@ class Settings(BaseSettings):
         "GITHUB_PAT",
         "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",
     )
-
     estimator_dataset_s3_uri: str = os.environ.get(
         "S3_BASE_PATH", "s3://with-context-sagemaker/datasets/bert-topic/data/"
     )

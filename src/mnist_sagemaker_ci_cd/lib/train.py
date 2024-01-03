@@ -28,7 +28,13 @@ logger.setLevel(logging.DEBUG)
 
 
 def retrieve_data():
-    """Retrieve data from Data Version Control."""
+    """Retrieve data from Data Version Control.
+
+    This function retrieves the data from DVC and moves it to the input directory.
+    It is advisable not to keep this unless you are not using DVC.
+
+    This function moves the contents of the data/ folder using the *.* wildcard to move all subfolders and files.
+    """
     # Data Version Control
     commands = ["dvc pull", "mv data/*.* /opt/ml/input/data/"]
 
@@ -44,28 +50,29 @@ def retrieve_data():
 
 
 def _train(args, data_dir="/opt/ml/input/data"):
+    """Train the model based on the training data."""
     logger.debug("BERTtopic training starting")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.info(f"Device Type: {device}")
+    print(f"Device Type: {device}")
 
     model = BERTopic(language=args.language)
 
-    logger.info(f"BERTtopic Model loaded for language {args.language}")
+    print(f"BERTtopic Model loaded for language {args.language}")
 
-    logger.info("Loading Training data")
-    logger.info(f"data_dir: {data_dir}")
+    print("Loading Training data")
+    print(f"data_dir: {data_dir}")
     with open(data_dir + "/training_data.txt") as file:
         docs = [line.rstrip() for line in file]
-    logger.info(f"Training data loaded. Number of documents: {len(docs)}")
-    logger.info("Started Training")
+    print(f"Training data loaded. Number of documents: {len(docs)}")
+    print("Started Training")
     topics, probs = model.fit_transform(docs)
-    logger.info("Finished Training")
+    print("Finished Training")
     return _save_model(model, args.model_dir)
 
 
 def _save_model(model, model_dir):
-    logger.info("Saving the model.")
+    print("Saving the model.")
     path = os.path.join(model_dir, "my_model")
     model.save(path)
 
