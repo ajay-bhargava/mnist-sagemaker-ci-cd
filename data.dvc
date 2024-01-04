@@ -3,9 +3,9 @@ outs:
   path: data
   files:
   - relpath: training_data.txt
-    md5: cdc83e0a2caf1bab06f675a62da3407c
-    size: 1135229
+    md5: edb5a75fc5d5b29ae451c35348dab1b5
+    size: 2484873
     cloud:
       bert-topic:
-        etag: cdc83e0a2caf1bab06f675a62da3407c
-        version_id: rqdjZKXMWSFRN6j_nGe0MtCW8MieLGgY
+        etag: edb5a75fc5d5b29ae451c35348dab1b5
+        version_id: towLGboNHIGn721fVkVrNa60EYA6X4Xp
