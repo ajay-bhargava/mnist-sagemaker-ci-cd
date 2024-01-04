@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     env_file (str): The name of the environment file to load configuration from.
     """
 
-    github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "development-training")
+    github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "dvc-training-branch")
     github_sha: str = os.environ.get("GITHUB_SHA", "1940a1baa305519c96d186903644216fda399ecc")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
