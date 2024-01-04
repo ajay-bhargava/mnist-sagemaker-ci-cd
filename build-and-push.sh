@@ -16,6 +16,8 @@ then
 fi
 
 account=$(aws sts get-caller-identity --query Account --output text)
+key_id="2"
+secret_key="1"
 # Get the region defined in the current configuration (default to us-west-2 if none defined)
 region=${region:-us-east-1}
 
@@ -37,6 +39,6 @@ aws ecr get-login-password --region "${region}" | docker login -u AWS --password
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
 
-docker build -f ${dockerfile} -t ${image} --target sagemaker . --build-arg REGION=${region}
+docker build -f ${dockerfile} -t ${image} --target sagemaker . --build-arg REGION=${region} --build-arg KEY_ID=${key_id} --build-arg SECRET_KEY=${secret_key}
 docker tag ${image} ${fullname}
 docker push ${fullname}

@@ -38,8 +38,8 @@ class Settings(BaseSettings):
     )
     output_s3_uri: str = f"s3://with-context-sagemaker/fits/bert-topic/{github_ref_name}/"
 
-    @classmethod
     @validator("estimator_dataset_s3_uri", "output_s3_uri")
+    @classmethod
     def check_s3_uri(cls, v):
         """A validator method that checks if the provided URI is a valid S3 URI."""
         if "s3://" not in v:
