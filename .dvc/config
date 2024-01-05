@@ -1,5 +1,0 @@
-[core]
-    remote = bert-topic
-['remote "bert-topic"']
-    url = s3://with-context-sagemaker/datasets/bert-topic/
-    version_aware = true
