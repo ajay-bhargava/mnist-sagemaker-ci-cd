@@ -133,6 +133,7 @@ def train(args):
     rank = hvd.rank()
     if rank == 0:
         logger.info("\nRetrieving Data from DVC.\n")
+        logger.info(f"\nData Directory: {args.data_dir}\n")
         retrieve_data()
 
     # Horovod: pin GPU to local rank
