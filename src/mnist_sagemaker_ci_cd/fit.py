@@ -21,7 +21,6 @@ estimator = Estimator(
     image_uri="220582896887.dkr.ecr.us-east-1.amazonaws.com/mlops-sagemaker:latest",
     role=IAM_ROLE,
     entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
-    instance_count=1,
     instance_type=TRAINING_INSTANCE,
     hyperparameters=hyperparameters,  # type: ignore
     base_job_name=settings.output_s3_uri,
@@ -30,6 +29,12 @@ estimator = Estimator(
     sagemaker_session=SESSION,
     source_dir="./",
     dependencies=["src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"],
+    git_config={
+        "repo": settings.github_repository,
+        "branch": settings.github_ref_name,
+        "username": settings.github_actor,
+        "token": settings.github_pat,
+    },
 )
 
 estimator.fit(job_name=f"{settings.github_sha[:7]}")

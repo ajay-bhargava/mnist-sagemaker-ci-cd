@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """A class that represents the settings for the SageMaker Script.
 
     Attributes:
-                github_ref_name (str): The name of the GitHub reference (branch or tag) being used. Defaults to "development-training".
+                github_ref_name (str): The name of the GitHub reference (branch or tag) being used. Defaults to "mnist-dvc-branch".
                 github_sha (str): The SHA of the GitHub commit being used. Defaults to "1930a1baa305519c96d186903644216fda399ecc".
                 github_repository (str): The URL of the GitHub repository. Defaults to "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git".
                 github_actor (str): The username of the GitHub actor (user or bot) triggering the pipeline. Defaults to "ajay-bhargava".
@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     env_file (str): The name of the environment file to load configuration from.
     """
 
-    github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "dvc-training-branch")
-    github_sha: str = os.environ.get("GITHUB_SHA", "7acf6d3fa466d8304df8bdf17409a0292bbe4fg6")
+    github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "mnist-dvc-branch")
+    github_sha: str = os.environ.get("GITHUB_SHA", "8bcf6d3fa466d8304df8bdf17409a0292bbe4fg6")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
     )
