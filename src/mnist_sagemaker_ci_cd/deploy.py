@@ -15,7 +15,7 @@ model_path = Estimator.attach(
 ).model_data
 
 model = Model(
-    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.12.1-gpu-py38-cu113-ubuntu20.04-sagemaker",
+    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker",
     model_data=model_path,
     role=IAM_ROLE,
     sagemaker_session=SESSION,
@@ -26,7 +26,7 @@ model = Model(
 )
 
 
-endpoint_name = "1940a1c-predictor"
+endpoint_name = f"{SETTINGS.github_sha[:7]}-endpoint"
 predictor = model.deploy(
     initial_instance_count=1,
     instance_type="ml.m5.large",
