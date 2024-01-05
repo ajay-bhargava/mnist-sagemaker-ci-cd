@@ -38,7 +38,12 @@ def retrieve_data():
     This function moves the contents of the data/ folder using the *.* wildcard to move all subfolders and files.
     """
     # Data Version Control
-    commands = ["dvc pull", "mv data/* /opt/ml/input/data/"]
+    commands = [
+        "dvc pull",
+        "cp -rv data/* /opt/ml/input/data/",
+        "rm -rf data",
+        "ls -hR /opt/ml/input/data/",
+    ]
 
     for cmd in commands:
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -125,7 +130,12 @@ def train(args):
     hvd.init()
     torch.manual_seed(args.seed)
 
-    # Horovod: pin GPU to local local rank
+    rank = hvd.rank()
+    if rank == 0:
+        logger.info("\nRetrieving Data from DVC.\n")
+        retrieve_data()
+
+    # Horovod: pin GPU to local rank
     torch.cuda.set_device(hvd.local_rank())
     torch.cuda.manual_seed(args.seed)
 
@@ -282,7 +292,5 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, default="/opt/ml/input/data/MNIST/raw/")
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
-    logger.info("\nRetrieving Data from DVC.\n")
-    retrieve_data()
     logger.info("\nStarting Training.\n")
     train(parser.parse_args())
