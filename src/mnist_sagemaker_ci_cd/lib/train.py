@@ -38,7 +38,7 @@ def retrieve_data():
     This function moves the contents of the data/ folder using the *.* wildcard to move all subfolders and files.
     """
     # Data Version Control
-    commands = ["dvc pull", "mv data/*.* /opt/ml/input/data/"]
+    commands = ["dvc pull", "mv data/* /opt/ml/input/data/"]
 
     for cmd in commands:
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
