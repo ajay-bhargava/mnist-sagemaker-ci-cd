@@ -31,13 +31,13 @@ estimator = Estimator(
     code_location=settings.output_s3_uri,
     sagemaker_session=SESSION,
     source_dir="./",
-    dependencies=["src/mnist_sagemaker_ci_cd/deps/train/requirements.txt"],
-    git_config={
-        "repo": settings.github_repository,
-        "branch": settings.github_ref_name,
-        "username": settings.github_actor,
-        "token": settings.github_pat,
-    },
+    dependencies=["src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"],
+    # git_config={
+    #     "repo": settings.github_repository,
+    #     "branch": settings.github_ref_name,
+    #     "username": settings.github_actor,
+    #     "token": settings.github_pat,
+    # },
 )
 
 estimator.fit(job_name=f"{settings.github_sha[:7]}")

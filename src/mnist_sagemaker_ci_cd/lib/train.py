@@ -73,8 +73,11 @@ def _train(args, data_dir="/opt/ml/input/data"):
 
 def _save_model(model, model_dir):
     print("Saving the model.")
+    embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
     path = os.path.join(model_dir, "my_model")
-    model.save(path)
+    model.save(
+        path, serialization="pytorch", save_ctfidf=True, save_embedding_model=embedding_model
+    )
 
 
 if __name__ == "__main__":
