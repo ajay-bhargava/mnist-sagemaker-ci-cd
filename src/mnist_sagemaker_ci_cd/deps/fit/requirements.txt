@@ -1,1 +1,7 @@
-bertopic
+horovod
+packaging
+sagemaker
+sagemaker-training
+scikit-learn
+torch
+torchvision

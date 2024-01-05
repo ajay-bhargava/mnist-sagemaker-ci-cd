@@ -1,4 +1,0 @@
-bertopic
-nvgpu
-numba
-protobuf

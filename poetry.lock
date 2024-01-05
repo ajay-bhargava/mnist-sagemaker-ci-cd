@@ -2194,6 +2194,37 @@ files = [
 ]
 
 [[package]]
+name = "horovod"
+version = "0.28.1"
+description = "Distributed training framework for TensorFlow, Keras, PyTorch, and Apache MXNet."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "horovod-0.28.1.tar.gz", hash = "sha256:92a43f5a94c43907a56805bad15f19700c62ffc83b7ca483f9e104e229f67ef0"},
+]
+
+[package.dependencies]
+cffi = ">=1.4.0"
+cloudpickle = "*"
+packaging = "*"
+psutil = "*"
+pyyaml = "*"
+
+[package.extras]
+all-frameworks = ["fsspec (>=2021.07.0)", "keras (>=2.0.8,!=2.0.9,!=2.1.0,!=2.1.1)", "mxnet (>=1.4.1)", "numpy", "petastorm (>=0.12.0)", "pyarrow (>=0.15.0,<11.0)", "pyspark (>=2.3.2)", "pyspark (>=3.0.0)", "tensorflow", "torch"]
+dev = ["fsspec (>=2021.07.0)", "keras (==2.3.1)", "mxnet (==1.5.0)", "numpy", "petastorm (>=0.12.0)", "pyarrow (>=0.15.0,<11.0)", "pyspark (==3.0.1)", "pytorch_lightning (>=1.3.8,<1.5.10)", "tensorflow-cpu (==2.2.0)", "torch (==1.4.0)", "torchvision (==0.5.0)"]
+keras = ["keras (>=2.0.8,!=2.0.9,!=2.1.0,!=2.1.1)"]
+mxnet = ["mxnet (>=1.4.1)"]
+pytorch = ["torch"]
+pytorch-spark = ["fsspec (>=2021.07.0)", "numpy", "petastorm (>=0.12.0)", "pyarrow (>=0.15.0,<11.0)", "pyspark (>=2.3.2)", "pyspark (>=3.0.0)", "pytorch_lightning (>=1.3.8,<1.5.10)", "torch"]
+ray = ["aioredis (<2)", "google-api-core (<2.9.0)", "ray"]
+spark = ["fsspec (>=2021.07.0)", "numpy", "petastorm (>=0.12.0)", "pyarrow (>=0.15.0,<11.0)", "pyspark (>=2.3.2)", "pyspark (>=3.0.0)"]
+tensorflow = ["tensorflow"]
+tensorflow-cpu = ["tensorflow-cpu"]
+tensorflow-gpu = ["tensorflow-gpu"]
+test = ["mock", "parameterized", "pytest", "pytest-forked", "pytest-subtests"]
+
+[[package]]
 name = "httpcore"
 version = "1.0.2"
 description = "A minimal low-level HTTP client."
@@ -6980,4 +7011,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "4fd48ff138fecc2c2c3aaad14accd344d4894e17bfc5fdf351b9451a53401c70"
+content-hash = "dabf4dda313572f3395cc6e2bd459103b93879c5e389f4c2a2a163d1dd287527"

@@ -12,19 +12,21 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import argparse
-import ast
+import json
 import logging
 import os
 import subprocess
 import sys
 
-import torch
-from bertopic import BERTopic
-
-JSON_CONTENT_TYPE = "application/json"
+import horovod.torch as hvd
+import torch.nn.functional as F
+import torch.utils.data.distributed
+from torch import nn, optim
+from torchvision import datasets, transforms
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def retrieve_data():
@@ -49,57 +51,238 @@ def retrieve_data():
             print(f"Output of '{cmd}': {stdout.decode()}")
 
 
-def _train(args, data_dir="/opt/ml/input/data"):
-    """Train the model based on the training data."""
-    logger.debug("BERTtopic training starting")
+class Net(nn.Module):
+    """Neural network model for image classification."""
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Device Type: {device}")
+    def __init__(self):
+        """Initialize the neural network model."""
+        super(Net, self).__init__()  # noqa: UP008
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv2_drop = nn.Dropout2d()
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
 
-    model = BERTopic(language=args.language)
+    def forward(self, x):
+        """Forward pass of the neural network.
 
-    print(f"BERTtopic Model loaded for language {args.language}")
+        Args:
+            x (torch.Tensor): Input tensor.
 
-    print("Loading Training data")
-    print(f"data_dir: {data_dir}")
-    with open(data_dir + "/training_data.txt") as file:
-        docs = [line.rstrip() for line in file]
-    print(f"Training data loaded. Number of documents: {len(docs)}")
-    print("Started Training")
-    topics, probs = model.fit_transform(docs)
-    print("Finished Training")
-    return _save_model(model, args.model_dir)
+        Returns:
+            torch.Tensor: Output tensor after passing through the network.
+        """
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        x = x.view(-1, 320)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
-def _save_model(model, model_dir):
-    print("Saving the model.")
-    embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
-    output_path = os.path.join(model_dir, "my_model")
-    model.save(
-        output_path, serialization="pytorch", save_ctfidf=True, save_embedding_model=embedding_model
+def _get_train_data_loader(batch_size, training_dir, **kwargs):
+    logger.info("Get train data sampler and data loader")
+    dataset = datasets.MNIST(
+        training_dir,
+        train=True,
+        transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        ),
     )
+    train_sampler = torch.utils.data.distributed.DistributedSampler(
+        dataset, num_replicas=hvd.size(), rank=hvd.rank()
+    )
+    train_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, sampler=train_sampler, **kwargs
+    )
+    return train_loader
+
+
+def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
+    logger.info("Get test data sampler and data loader")
+    dataset = datasets.MNIST(
+        training_dir,
+        train=False,
+        transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        ),
+    )
+    test_sampler = torch.utils.data.distributed.DistributedSampler(
+        dataset, num_replicas=hvd.size(), rank=hvd.rank()
+    )
+    test_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=test_batch_size, sampler=test_sampler, **kwargs
+    )
+    return test_loader
+
+
+def train(args):
+    """Train the model."""
+    logger.debug(f"Number of gpus available - {args.num_gpus}")
+
+    # Horovod: initialize library
+    hvd.init()
+    torch.manual_seed(args.seed)
+
+    # Horovod: pin GPU to local local rank
+    torch.cuda.set_device(hvd.local_rank())
+    torch.cuda.manual_seed(args.seed)
+
+    # Horovod: limit number of CPU threads to be used per worker
+    torch.set_num_threads(1)
+
+    kwargs = {"num_workers": 1, "pin_memory": True}
+
+    train_loader = _get_train_data_loader(args.batch_size, args.data_dir, **kwargs)
+    test_loader = _get_test_data_loader(args.test_batch_size, args.data_dir, **kwargs)
+
+    logger.debug(
+        "Processes {}/{} ({:.0f}%) of train data".format(
+            len(train_loader.sampler),
+            len(train_loader.dataset),
+            100.0 * len(train_loader.sampler) / len(train_loader.dataset),
+        )
+    )
+
+    logger.debug(
+        "Processes {}/{} ({:.0f}%) of test data".format(
+            len(test_loader.sampler),
+            len(test_loader.dataset),
+            100.0 * len(test_loader.sampler) / len(test_loader.dataset),
+        )
+    )
+
+    model = Net()
+
+    lr_scaler = hvd.size()
+
+    model.cuda()
+
+    # Horovod: scale learning rate by lr_scaler.
+    optimizer = optim.SGD(model.parameters(), lr=args.lr * lr_scaler, momentum=args.momentum)
+
+    # Horovod: broadcast parameters & optimizer state.
+    hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+    hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+
+    # Horovod: wrap optimizer with DistributedOptimizer.
+    optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        for batch_idx, (data, target) in enumerate(train_loader, 1):
+            data, target = data.cuda(), target.cuda()
+            optimizer.zero_grad()
+            output = model(data)
+            loss = F.nll_loss(output, target)
+            loss.backward()
+            optimizer.step()
+            if batch_idx % args.log_interval == 0:
+                logger.info(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f}".format(
+                        epoch,
+                        batch_idx * len(data),
+                        len(train_loader.sampler),
+                        100.0 * batch_idx / len(train_loader),
+                        loss.item(),
+                    )
+                )
+        test(model, test_loader)
+    save_model(model, args.model_dir)
+
+
+def _metric_average(val, name):
+    """Compute the average over all workers for a metric tracked by horovod."""
+    tensor = torch.tensor(val)
+    avg_tensor = hvd.allreduce(tensor, name=name)
+    return avg_tensor.item()
+
+
+def test(model, test_loader):
+    """Validate the model."""
+    model.eval()
+    test_loss = 0
+    test_accuracy = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.cuda(), target.cuda()
+            output = model(data)
+            test_loss += F.nll_loss(output, target, size_average=False).item()  # sum up batch loss
+            pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
+            test_accuracy += pred.eq(target.view_as(pred)).sum().item()
+
+    # Horovod: use test_sampler to determine the number of examples in this worker's partition.
+    test_loss /= len(test_loader.sampler)
+    test_accuracy /= len(test_loader.sampler)
+
+    # Horovod: average metric values across workers.
+    test_loss = _metric_average(test_loss, "avg_loss")
+    test_accuracy = _metric_average(test_accuracy, "avg_accuracy")
+
+    logger.info(f"Test set: Average loss: {test_loss:.4f}, Accuracy: {100 * test_accuracy:.2f}%\n")
+
+
+def save_model(model, model_dir):
+    """Save the model."""
+    path = os.path.join(model_dir, "model.pth")
+    torch.save(model.cpu().state_dict(), path)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    # custom parameter for BERTopic
     parser.add_argument(
-        "--language",
+        "--batch-size",
+        type=int,
+        default=64,
+        metavar="N",
+        help="input batch size for training (default: 64)",
+    )
+    parser.add_argument(
+        "--test-batch-size",
+        type=int,
+        default=1000,
+        metavar="N",
+        help="input batch size for testing (default: 64)",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=10,
+        metavar="N",
+        help="number of epochs to train (default: 10)",
+    )
+    parser.add_argument(
+        "--lr", type=float, default=0.01, metavar="LR", help="learning rate (default: 0.01)"
+    )
+    parser.add_argument(
+        "--momentum", type=float, default=0.5, metavar="M", help="SGD momentum (default: 0.5)"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=42, metavar="S", help="random seed (default: 42)"
+    )
+    parser.add_argument(
+        "--log-interval",
+        type=int,
+        default=10,
+        metavar="N",
+        help="how many batches to wait before logging training status",
+    )
+    parser.add_argument(
+        "--backend",
         type=str,
-        default="english",
-        help='main language for the input documents. If you want a multilingual model that supports 50+ languages, select "multilingual".',
+        default="gloo",
+        help="backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)",
     )
 
-    # The parameters below retrieve their default values from SageMaker environment variables, which are
-    # instantiated by the SageMaker containers framework. When running locally, you can set these environment variables.
-
-    parser.add_argument("--hosts", type=str, default=ast.literal_eval(os.environ["SM_HOSTS"]))
+    # Container Environment
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--data-dir", type=str, default="/opt/ml/input/data/MNIST/raw/")
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
+    logger.info("\nRetrieving Data from DVC.\n")
     retrieve_data()
-    _train(parser.parse_args(), data_dir="/opt/ml/input/data")
-
-    sys.exit()
+    logger.info("\nStarting Training.\n")
+    train(parser.parse_args())

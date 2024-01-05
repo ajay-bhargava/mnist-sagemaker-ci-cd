@@ -46,6 +46,8 @@ sagemaker = "^2.203.0"
 dvc = {extras = ["s3"], version = "^3.37.0"}
 torch = "^2.1.2"
 torchvision = "^0.16.2"
+packaging = "^23.2"
+horovod = "^0.28.1"
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
 precision = 1
@@ -197,4 +199,8 @@ convention = "google"
   help = "Generate requirements.txt for Sagemaker Training Job"
 
     [[tool.poe.tasks.requirements.sequence]]
-    cmd = "poetry export --only training --without-hashes -f requirements.txt -o /workspaces/mnist-sagemaker-ci-cd/src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
+    shell = """
+      function strip_pip_list() { awk '{print $1}' <<< "$@"; } && \
+      strip_pip_list "$(poetry show --only sagemaker -T)" >> /workspaces/mnist-sagemaker-ci-cd/src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
+      """
+    interpreter = "zsh"
