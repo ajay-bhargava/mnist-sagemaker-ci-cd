@@ -5454,6 +5454,27 @@ scipy = ["scipy (==1.10.1)"]
 test = ["Jinja2 (==3.0.3)", "PyYAML (==6.0)", "apache-airflow (==2.7.3)", "apache-airflow-providers-amazon (==7.2.1)", "attrs (>=23.1.0,<24)", "awslogs (==0.14.0)", "black (==22.3.0)", "cloudpickle (==2.2.1)", "contextlib2 (==21.6.0)", "coverage (>=5.2,<6.2)", "docker (>=5.0.2,<7.0.0)", "fabric (==2.6.0)", "flake8 (==4.0.1)", "mock (==4.0.3)", "nbformat (>=5.9,<6)", "onnx (==1.14.1)", "pandas (>=1.3.5,<1.5)", "pillow (>=10.0.1,<=11)", "pyspark (==3.3.1)", "pytest (==6.2.5)", "pytest-cov (==3.0.0)", "pytest-rerunfailures (==10.2)", "pytest-timeout (==2.1.0)", "pytest-xdist (==2.4.0)", "pyvis (==0.2.1)", "requests (==2.31.0)", "sagemaker-experiments (==0.1.35)", "sagemaker-feature-store-pyspark-3.3", "scikit-learn (==1.3.0)", "scipy (==1.10.1)", "stopit (==1.1.2)", "tox (==3.24.5)", "tritonclient[http] (<2.37.0)", "urllib3 (>=1.26.8,<3.0.0)", "xgboost (>=1.6.2,<=1.7.6)"]
 
 [[package]]
+name = "sagemaker-inference"
+version = "1.10.1"
+description = "Open source toolkit for helping create serving containers to run on Amazon SageMaker."
+optional = false
+python-versions = "*"
+files = [
+    {file = "sagemaker_inference-1.10.1.tar.gz", hash = "sha256:7aab74809c8eb28c6980eda52cd46e2ca9699a581f291477a0aa3b12ce5e9762"},
+]
+
+[package.dependencies]
+boto3 = "*"
+numpy = "*"
+psutil = "*"
+retrying = ">=1.3.3,<1.4"
+scipy = "*"
+six = "*"
+
+[package.extras]
+test = ["flake8", "mock", "pytest", "pytest-cov", "pytest-xdist", "requests", "tox"]
+
+[[package]]
 name = "sagemaker-training"
 version = "4.7.4"
 description = "Open source library for creating containers to run on Amazon SageMaker."
@@ -7011,4 +7032,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "dabf4dda313572f3395cc6e2bd459103b93879c5e389f4c2a2a163d1dd287527"
+content-hash = "cbf7b2c082200153e638688a0648fcfce179228068ff67c09c103da45dcd8c6f"

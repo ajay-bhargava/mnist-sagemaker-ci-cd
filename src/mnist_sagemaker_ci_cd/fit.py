@@ -14,7 +14,7 @@ ACCOUNT_ID = SESSION.boto_session.client("sts").get_caller_identity()["Account"]
 TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # Hyperparameters
-hyperparameters = {"epochs": 6, "backend": "gloo"}
+hyperparameters = {"epochs": 10, "backend": "gloo"}
 
 # Define Estimator
 estimator = Estimator(
@@ -22,7 +22,7 @@ estimator = Estimator(
     role=IAM_ROLE,
     entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
     instance_type=TRAINING_INSTANCE,
-    instance_count=1,
+    instance_count=2,
     hyperparameters=hyperparameters,  # type: ignore
     base_job_name=settings.output_s3_uri,
     output_path=settings.output_s3_uri,
@@ -38,4 +38,4 @@ estimator = Estimator(
     },
 )
 
-estimator.fit(job_name=f"{settings.github_sha[:7]}")
+estimator.fit(job_name=f"{settings.github_sha[:7]}", wait=False, logs="Training")
