@@ -47,7 +47,6 @@ dvc = {extras = ["s3"], version = "^3.37.0"}
 torch = "^2.1.2"
 torchvision = "^0.16.2"
 packaging = "^23.2"
-horovod = "^0.28.1"
 
 [tool.poetry.group.inference]
 optional = true
