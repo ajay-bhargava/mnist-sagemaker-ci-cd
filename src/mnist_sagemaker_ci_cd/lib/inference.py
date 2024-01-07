@@ -68,29 +68,36 @@ def input_fn(request_body, request_content_type):
     return torch.from_numpy(array).float()
 
 
-def predict_fn(input_data, model):
+def predict_fn(input_data, model, context):
     """Preprocess input data and make predictions.
 
     Args:
         input_data (torch.Tensor): Input data.
         model (torch.nn.Module): PyTorch model.
+        context (sagemaker_inference.model_server.context.ModelServerContext): Model server context.
 
     Returns:
         torch.Tensor: Predictions.
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(
+        "cuda:" + str(context.system_properties.get("gpu_id"))
+        if torch.cuda.is_available()
+        else "cpu"
+    )
+    model.to(device)
     model.eval()
     with torch.no_grad():
         logging.info("Making predictions on input.")
         return model(input_data.to(device)).argmax(1)
 
 
-def output_fn(prediction, content_type):
+def output_fn(prediction, content_type, context):
     """An output_fn that dumps the prediction to a JSON format.
 
     Args:
         prediction (torch.Tensor): Predictions.
         content_type (str): Response content type (this must be specified as a sagemaker.deserializers.JSONDeserializer() if the output is a dictionary.
+        context (sagemaker_inference.model_server.context.ModelServerContext): Model server context.
     """
     output = {"prediction": prediction.detach().cpu().numpy().tolist()}
     logging.info(f"Output: {output}")

@@ -18,12 +18,13 @@ model_path = Estimator.attach(
 ).model_data
 
 model = PyTorchModel(
-    image_uri="763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker",
     model_data=model_path,
     role=IAM_ROLE,
     sagemaker_session=SESSION,
-    source_dir="./",
-    entry_point="src/mnist_sagemaker_ci_cd/lib/inference.py",
+    source_dir="./src/mnist_sagemaker_ci_cd/lib/",
+    framework_version="2.1",
+    py_version="py310",
+    entry_point="inference.py",
     name=SETTINGS.github_sha[:7],
     code_location=SETTINGS.output_s3_uri,
 )
@@ -34,10 +35,8 @@ predictor = model.deploy(
     initial_instance_count=1,
     instance_type="ml.m5.large",
     endpoint_name=endpoint_name,
-    # This is required and must match the input type of the inference.py script
     serializer=NumpySerializer(dtype=np.float32),
     deserializer=JSONDeserializer(),
-    # End of the deliberate requirement section
     endpoint_logging=True,
 )
 
