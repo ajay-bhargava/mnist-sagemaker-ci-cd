@@ -92,6 +92,8 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
     apt-get update && \
     apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh awscli && \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
+    apt-get install nodejs && \ 
+    npm install serverless -g && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
 
