@@ -2,3 +2,4 @@ mangum
 numpy
 pillow
 sagemaker
+starlette

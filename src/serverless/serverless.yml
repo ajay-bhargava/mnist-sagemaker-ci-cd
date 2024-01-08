@@ -7,6 +7,8 @@
 # The `service` block is the name of the service
 service: mnist-sagemaker-ci-cd
 frameworkVersion: "3"
+org: ajaybhargava
+app: mnist-endpoint
 
 # The `provider` block defines where your service will be deployed
 provider:
@@ -35,7 +37,7 @@ custom:
 
 functions:
   api:
-    handler: api_app.handler
+    handler: api.handler
     events:
       - httpApi: "*"
 
