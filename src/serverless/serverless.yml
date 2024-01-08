@@ -7,7 +7,7 @@
 # The `service` block is the name of the service
 service: mnist-sagemaker-ci-cd
 frameworkVersion: "3"
-org: ajaybhargava
+org: withcontext
 app: mnist-endpoint
 
 # The `provider` block defines where your service will be deployed
