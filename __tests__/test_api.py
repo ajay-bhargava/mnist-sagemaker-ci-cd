@@ -1,9 +1,9 @@
-"""Test mnist-sagemaker-ci-cd REST API."""
+"""Test REST API."""
 
 import httpx
 from fastapi.testclient import TestClient
 
-from mnist_sagemaker_ci_cd.api import app
+from serverless.api import app
 
 client = TestClient(app)
 

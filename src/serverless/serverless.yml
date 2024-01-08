@@ -1,0 +1,43 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service: mnist-sagemaker-ci-cd
+frameworkVersion: "3"
+
+# The `provider` block defines where your service will be deployed
+provider:
+  name: aws
+  runtime: python3.11
+  timeout: 30
+  memorySize: 2048
+  environment:
+    SAGEMAKER_DEPLOYED_ENDPOINT: 8qgf6d3
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action: "sagemaker:*"
+          Resource: "*"
+
+# The `functions` block defines what code to deploy
+custom:
+  pythonRequirements:
+    # aws lambda has an after-extraction size limit - with native dependencies we pass the limit quickly
+    # zip the requirements and extract them on the fly (see handler.py)
+    zip: true
+    dockerizePip: true
+    useDownloadCache: false
+    useStaticCache: false
+
+functions:
+  api:
+    handler: api_app.handler
+    events:
+      - httpApi: "*"
+
+plugins:
+  - serverless-python-requirements
