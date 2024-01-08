@@ -1,3 +1,4 @@
+"""Inference script for the MNIST model."""
 import io
 import logging
 import os
@@ -5,6 +6,7 @@ import os
 import numpy as np
 import torch
 import torch.nn.functional as F
+from PIL import Image
 from sagemaker_inference import encoder
 from torch import nn
 
@@ -59,9 +61,10 @@ def input_fn(request_body, request_content_type):
     """
     logging.info("Received content.")
     try:
-        io_bytes = io.BytesIO(request_body)
-        array = np.load(io_bytes)
-        array = array.reshape(1, 1, 28, 28)
+        image = Image.open(io.BytesIO(request_body))
+        grayscale_image = image.convert("L")
+        resized_image = grayscale_image.resize((28, 28))
+        array = np.array(resized_image, dtype=np.float32).reshape(1, 1, 28, 28)
     except Exception as e:
         logging.info(f"Error: {e}")
     logging.info(f"Input: {array.shape}")

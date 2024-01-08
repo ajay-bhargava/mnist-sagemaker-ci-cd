@@ -1,11 +1,10 @@
 """This module contains the code for deploying the mdoel to Sagemaker following training."""
 import boto3
-import numpy as np
 import sagemaker
 from sagemaker.deserializers import JSONDeserializer
 from sagemaker.estimator import Estimator
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.serializers import NumpySerializer
+from sagemaker.serializers import IdentitySerializer
 
 from mnist_sagemaker_ci_cd.lib.settings import Settings
 
@@ -35,7 +34,7 @@ predictor = model.deploy(
     initial_instance_count=1,
     instance_type="ml.m5.large",
     endpoint_name=endpoint_name,
-    serializer=NumpySerializer(dtype=np.float32),
+    serializer=IdentitySerializer(),
     deserializer=JSONDeserializer(),
     endpoint_logging=True,
 )

@@ -49,16 +49,22 @@ torch = "^2.1.2"
 torchvision = "^0.16.2"
 packaging = "^23.2"
 
+
+[tool.poetry.group.gpu]  # https://python-poetry.org/docs/master/managing-dependencies/
+optional = true
+
+[tool.poetry.group.gpu.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
+horovod = "^0.22.1"
+
 [tool.poetry.group.inference]
 optional = true
 
 [tool.poetry.group.inference.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
-sagemaker-inference = "^1.10.1"
 mangum = "^0.17.0"
+starlette = ">=0.27.0"
+boto3 = "^1.18.62"
+botocore = "^1.21.62"
 sagemaker = "^2.203.0"
-pillow = "^10.2.0"
-numpy = "^1.26.3"
-
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
 precision = 1
