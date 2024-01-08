@@ -1,5 +1,8 @@
 """REST API."""
-
+try:
+    import unzip_requirements
+except ImportError:
+    pass
 import io
 from ast import literal_eval
 from typing import Any
