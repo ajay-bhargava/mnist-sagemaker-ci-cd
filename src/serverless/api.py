@@ -11,11 +11,10 @@ from PIL import Image
 from sagemaker.deserializers import JSONDeserializer
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import NumpySerializer
-from src.mnist_sagemaker_ci_cd.lib.settings import Settings
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
-SETTINGS = Settings()
+ENDPOINT = "8qgf6d3"
 
 sample_number = """[
  [
@@ -58,7 +57,7 @@ def run_inference(file: Any):
     grayscale_image = new_image.convert("L")
     image = np.array(grayscale_image, dtype=np.float32)
     predictor = Predictor(
-        endpoint_name=SETTINGS.github_sha[:7],
+        endpoint_name=ENDPOINT,
         serializer=NumpySerializer(),
         deserializer=JSONDeserializer(),
     )
@@ -87,7 +86,7 @@ def read_root() -> str:
 def predict() -> dict:
     """Predict."""
     predictor = Predictor(
-        endpoint_name=SETTINGS.github_sha[:7],
+        endpoint_name=ENDPOINT,
         serializer=NumpySerializer(),
         deserializer=JSONDeserializer(),
     )
