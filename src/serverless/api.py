@@ -1,30 +1,18 @@
 """REST API."""
-try:
-    import unzip_requirements
+try:  # noqa: SIM105
+    import unzip_requirements  # noqa: F401
 except ImportError:
     pass
-from typing import Any
+import json
 
+import boto3
 from fastapi import FastAPI, File, UploadFile
 from mangum import Mangum
-from sagemaker.deserializers import JSONDeserializer
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import IdentitySerializer
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
 ENDPOINT = "8qgf6d3"
-
-
-def run_inference(file: Any):
-    """Run an inference by passing it to the Sagemaker Endpoint."""
-    predictor = Predictor(
-        endpoint_name=ENDPOINT,
-        serializer=IdentitySerializer(),
-        deserializer=JSONDeserializer(),
-    )
-    return predictor.predict(file)
-
+sagemaker_runtime = boto3.client("sagemaker-runtime")
 
 app = FastAPI(
     middleware=[
@@ -48,11 +36,19 @@ def read_root() -> str:
 async def predict_file(file: UploadFile = File(...)) -> dict:
     """Predict file."""
     contents = await file.read()
-    inference = run_inference(contents)
-    prediction = inference["prediction"][0]
+    try:
+        response = sagemaker_runtime.invoke_endpoint(
+            EndpointName=ENDPOINT,
+            ContentType="application/octet-stream",  # Change this depending on your payload format
+            Accept="application/json",
+            Body=contents,
+        )
+    except Exception as e:
+        raise (e)
+    prediction = json.loads(response["Body"].read().decode("utf-8"))
     return {
         "filename": file.filename,
-        "prediction": prediction,
+        "prediction": prediction["prediction"][0],
     }
 
 
