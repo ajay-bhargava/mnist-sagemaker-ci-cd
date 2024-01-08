@@ -2,4 +2,3 @@ mangum
 numpy
 pillow
 sagemaker
-sagemaker-inference

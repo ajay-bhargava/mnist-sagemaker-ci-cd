@@ -12,7 +12,7 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: python3.11
-  timeout: 30
+  timeout: 29
   memorySize: 2048
   environment:
     SAGEMAKER_DEPLOYED_ENDPOINT: 8qgf6d3
