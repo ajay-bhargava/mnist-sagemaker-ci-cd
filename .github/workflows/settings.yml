@@ -1,0 +1,20 @@
+name: Train Sagemaker Model
+on:
+  workflow_dispatch:
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          poetry install
+      - name: Run Estimator Fit Function
+        run: |
+          python3 src/mnist_sagemaker_ci_cd/lib/settings.py
+
