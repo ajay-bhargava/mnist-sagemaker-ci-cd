@@ -22,10 +22,10 @@ data/
 # Hypothesis
 .hypothesis/
 
-# Jupyter
-*.ipynb
-.ipynb_checkpoints/
-notebooks/
+# # Jupyter
+# *.ipynb
+# .ipynb_checkpoints/
+# notebooks/
 
 # macOS
 .DS_Store
@@ -62,3 +62,4 @@ __pycache__/
 
 # VS Code
 .vscode/
+/data
