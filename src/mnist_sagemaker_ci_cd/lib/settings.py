@@ -23,25 +23,29 @@ class Settings(BaseSettings):
     env_file (str): The name of the environment file to load configuration from.
     """
 
+    # Github Actions environment variables
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "mnist-dvc-branch")
     github_sha: str = os.environ.get("GITHUB_SHA", "8qgf6d3fa466d8304df8bdf17409a0292bbe4fg6")
     github_repository: str = os.environ.get(
-        "GITHUB_REPOSITORY", "https://github.com/ajay-bhargava/mnist-sagemaker-ci-cd.git"
+        "GITHUB_REPOSITORY", "ajay-bhargava/mnist-sagemaker-ci-cd"
     )
     github_actor: str = os.environ.get("GITHUB_ACTOR", "ajay-bhargava")
     github_pat: str = os.environ.get(
         "GITHUB_PAT",
         "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",
     )
-    estimator_dataset_s3_uri: str = os.environ.get(
-        "S3_BASE_PATH", "s3://with-context-sagemaker/datasets/mnist-pytorch/data/"
-    )
-    output_s3_uri: str = f"s3://with-context-sagemaker/fits/mnist-pytorch/{github_ref_name}/"
+    # SageMaker Script environment variables
+    output_s3_uri: str = f"s3://with-context-sagemaker/fits/{github_repository.split("/")[-1]}/{github_ref_name}/"
 
-    @validator("estimator_dataset_s3_uri", "output_s3_uri")
+    @validator("output_s3_uri")
     @classmethod
     def check_s3_uri(cls, v):
         """A validator method that checks if the provided URI is a valid S3 URI."""
         if "s3://" not in v:
             raise ValueError("The URI must be a valid S3 URI")
         return v
+
+
+if __name__ == "__main__":
+    settings = Settings()
+    print(settings.json(indent=4))
