@@ -18,23 +18,11 @@ jobs:
         uses: snok/install-poetry@v1.3.4
         with:
             installer-parallel: true
-        
-      - name: Load Poetry Cache
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install Dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          poetry install --no-interaction --no-root
-
+      
       - name: Install Poetry Project
         run: |
-          poetry install --no-interaction
+          poetry install --no-interaction --no-root
         
       - name: Run Estimator.fit() Function.
         run: |
           python3 src/mnist_sagemaker_ci_cd/lib/settings.py
-
