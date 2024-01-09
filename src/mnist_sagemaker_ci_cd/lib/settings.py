@@ -29,13 +29,14 @@ class Settings(BaseSettings):
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "ajay-bhargava/mnist-sagemaker-ci-cd"
     )
+    github_repo_name = github_repository.split("/")[-1]
     github_actor: str = os.environ.get("GITHUB_ACTOR", "ajay-bhargava")
     github_pat: str = os.environ.get(
         "GITHUB_PAT",
         "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",
     )
     # SageMaker Script environment variables
-    output_s3_uri: str = f"s3://with-context-sagemaker/fits/{github_repository.split("/")[-1]}/{github_ref_name}/"
+    output_s3_uri: str = f"s3://with-context-sagemaker/fits/{github_repo_name}/{github_ref_name}/"
 
     @validator("output_s3_uri")
     @classmethod
