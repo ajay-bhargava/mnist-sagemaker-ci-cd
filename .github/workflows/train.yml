@@ -3,53 +3,93 @@ on:
   workflow_dispatch:
 
 jobs:
-  # push-to-ecr:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   steps:
-  #     - name: Set Environment Variables
-  #       id: vars
-  #       run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+  push-to-ecr:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Set Environment Variables
+        id: vars
+        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
 
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         persist-credentials: false
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
         
-  #     - name: Configure AWS credentials
-  #       id: aws-credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         # Use GitHub OIDC provider
-  #         role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
-  #         aws-region: us-east-1
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      #----------------------------------------------
+      #       Check if ECR Repo Exists    
+      #----------------------------------------------      
+
+      - name: Login to Amazon ECR
+        id: login-ecr-home-repo
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: ${{vars.ECR_ACCOUNT_ID}}
+          
+      - name: Check if ECR Repository Exists
+        id: check-ecr
+        uses: mnmandahalf/check-ecr-image-exists@v0.1.5
+        with: 
+          repository-name: with-context-sagemaker-container
+          region: us-east-1
+          image-tag: ${{ steps.vars.outputs.REPO_NAME }}
+
+      - name: Report if ECR Repository Exists
+        if: steps.check-ecr.outputs.image-exists == 1
+        run: |
+            echo "### :white_check_mark: ECR Repository Exists" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "" 
+            echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
+            echo "| with-context-sagemaker-container | ${{ steps.vars.outputs.REPO_NAME }} |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+      #----------------------------------------------
+      #       If ECR Repo Doesn't Exist Make It.      
+      #----------------------------------------------
+
+      - name: Login to Amazon ECR
+        if: steps.check-ecr.outputs.image-exists == 0
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: "763104351884,${{vars.ECR_ACCOUNT_ID}}"
       
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v2        
-      
-  #     - name: Build, tag, and push image to Amazon ECR
-  #       id: build-image
-  #       env:
-  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         ECR_REPOSITORY: with-context-sagemaker-container
-  #         IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
-  #       run: |
-  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --target sagemaker . --build-arg REGION=us-east-1 --build-arg KEY_ID=${{secrets.ACCESS_KEY}} --build-arg SECRET_KEY=${{secrets.SECRET_KEY}}
-  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  #         echo "### :whale: Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
-  #         echo "" >> $GITHUB_STEP_SUMMARY
-  #         echo "" 
-  #         echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
-  #         echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
-  #         echo "| $ECR_REPOSITORY | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
-  #         echo "" >> $GITHUB_STEP_SUMMARY
+      - name: Build, tag, and push image to Amazon ECR
+        if: steps.check-ecr.outputs.image-exists == 0
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{steps.login-ecr-home-repo.outputs.registry}}
+          ECR_REPOSITORY: with-context-sagemaker-container
+          IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --target sagemaker . --build-arg REGION=us-east-1 --build-arg KEY_ID=${{secrets.DVC_ACCESS_KEY}} --build-arg SECRET_KEY=${{secrets.DVC_SECRET_KEY}}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "### :whale: Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "" 
+          echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| $ECR_REPOSITORY | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
   train-on-sagemaker:
-    # needs: push-to-ecr
+    needs: push-to-ecr
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       matrix:
         python-version: [ '3.11' ]
@@ -60,24 +100,37 @@ jobs:
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+        
       #----------------------------------------------
-      #       check-out repo and set-up poetry     
+      #       check-out repo and login to AWS     
       #----------------------------------------------
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Poetry
-        run: |
-          pipx install poetry
-          pipx ensurepath
-          echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      #----------------------------------------------
+      #       Setup Poetry and Install Dependencies    
+      #----------------------------------------------
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-          cache-dependency-path: poetry.lock
+
+      - name: Install Poetry Action
+        uses: snok/install-poetry@v1.3.4
+        with:
+            installer-parallel: true
+            virtualenvs-create: true
+            virtualenvs-in-project: true
 
       - name: Install Poetry Project
         run: |
@@ -85,15 +138,19 @@ jobs:
           poetry install --no-interaction --only runtime
 
       #----------------------------------------------
-      #       Setup CML Runner and Run Training Job     
+      #       Setup CML Runner  
       #----------------------------------------------
 
       # - name: Setup CML Runner
       #   uses: iterative/setup-cml@v2
+
+      #----------------------------------------------
+      #       Run Sagemaker Training Script   
+      #----------------------------------------------
 
       - name: Configure and Launch Sagemaker Training Job
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
         id: train
         run: |
-          poetry run python3 ./src/mnist_sagemaker_ci_cd/lib/settings.py
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
