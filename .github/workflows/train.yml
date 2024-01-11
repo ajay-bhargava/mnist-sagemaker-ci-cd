@@ -34,7 +34,6 @@ jobs:
         id: login-ecr-home-repo
         uses: aws-actions/amazon-ecr-login@v2
         with:
-          # ECR_REGISTRY is hard-coded to the value of the account number we want to push to. 
           registries: ${{secrets.ECR_ACCOUNT_ID}}
           
       - name: Check if ECR Repository Exists
@@ -46,8 +45,8 @@ jobs:
           image-tag: ${{ steps.vars.outputs.REPO_NAME }}
 
       - name: Report if ECR Repository Exists
+        if: steps.check-ecr.outputs.image-exists == 1
         run: |
-          if [ ${{ steps.check-ecr.outputs.image-exists }} == 1 ]; then
             echo "### :white_check_mark: ECR Repository Exists" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "" 
@@ -67,9 +66,9 @@ jobs:
           registries: "763104351884"       
       
       - name: Build, tag, and push image to Amazon ECR
+        if: steps.check-ecr.outputs.image-exists == 0
         id: build-image
         env:
-          # ECR_REGISTRY is hard-coded to the value of the account number we want to push to. 
           ECR_REGISTRY: ${{secrets.ECR_ACCOUNT_ID}}
           ECR_REPOSITORY: with-context-sagemaker-container
           IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
