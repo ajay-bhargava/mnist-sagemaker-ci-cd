@@ -96,5 +96,4 @@ jobs:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
         id: train
         run: |
-          source $VENV
           python3 src/mnist_sagemaker_ci_cd/lib/settings.py
