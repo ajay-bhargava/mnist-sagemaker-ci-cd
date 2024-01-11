@@ -88,7 +88,8 @@ jobs:
     needs: push-to-ecr
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # This is required for requesting the JWT
+      id-token: write
+      contents: read
     strategy:
       matrix:
         python-version: [ '3.11' ]
@@ -99,7 +100,7 @@ jobs:
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-
+        
       #----------------------------------------------
       #       check-out repo and login to AWS     
       #----------------------------------------------
