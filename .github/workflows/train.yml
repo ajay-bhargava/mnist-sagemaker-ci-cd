@@ -87,6 +87,8 @@ jobs:
   train-on-sagemaker:
     needs: push-to-ecr
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
     strategy:
       matrix:
         python-version: [ '3.11' ]
