@@ -99,11 +99,23 @@ jobs:
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
 
       #----------------------------------------------
-      #       check-out repo and set-up poetry     
+      #       check-out repo and login to AWS     
       #----------------------------------------------
 
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      #----------------------------------------------
+      #       Setup Poetry and Install Dependencies    
+      #----------------------------------------------
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -123,19 +135,11 @@ jobs:
           poetry install --no-interaction --only runtime
 
       #----------------------------------------------
-      #       Setup CML Runner and Login to AWS   
+      #       Setup CML Runner  
       #----------------------------------------------
 
       # - name: Setup CML Runner
       #   uses: iterative/setup-cml@v2
-
-      - name: Configure AWS credentials
-        id: aws-credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          # Use GitHub OIDC provider
-          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
-          aws-region: us-east-1
 
       #----------------------------------------------
       #       Run Sagemaker Training Script   
