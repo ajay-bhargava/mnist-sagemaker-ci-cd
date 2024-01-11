@@ -25,7 +25,41 @@ jobs:
           # Use GitHub OIDC provider
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
-      
+
+      #----------------------------------------------
+      #       Check if ECR Repo Exists    
+      #----------------------------------------------      
+
+      - name: Login to Amazon ECR
+        id: login-ecr-home-repo
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          # ECR_REGISTRY is hard-coded to the value of the account number we want to push to. 
+          registries: ${{secrets.ECR_ACCOUNT_ID}}
+          
+      - name: Check if ECR Repository Exists
+        id: check-ecr
+        uses: mnmandahalf/check-ecr-image-exists@v0.1.5
+        with: 
+          repository-name: with-context-sagemaker-container
+          region: us-east-1
+          image-tag: ${{ steps.vars.outputs.REPO_NAME }}
+
+      - name: Report if ECR Repository Exists
+        run: |
+          if [ ${{ steps.check-ecr.outputs.image-exists }} == 1 ]; then
+            echo "### :white_check_mark: ECR Repository Exists" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "" 
+            echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
+            echo "| with-context-sagemaker-container | ${{ steps.vars.outputs.REPO_NAME }} |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+      #----------------------------------------------
+      #       If ECR Repo Doesn't Exist Make It.      
+      #----------------------------------------------
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -35,7 +69,8 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          # ECR_REGISTRY is hard-coded to the value of the account number we want to push to. 
+          ECR_REGISTRY: ${{secrets.ECR_ACCOUNT_ID}}
           ECR_REPOSITORY: with-context-sagemaker-container
           IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
         run: |
