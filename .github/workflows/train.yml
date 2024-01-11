@@ -3,52 +3,52 @@ on:
   workflow_dispatch:
 
 jobs:
-  # push-to-ecr:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   steps:
-  #     - name: Set Environment Variables
-  #       id: vars
-  #       run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+  push-to-ecr:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Set Environment Variables
+        id: vars
+        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
 
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         persist-credentials: false
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
         
-  #     - name: Configure AWS credentials
-  #       id: aws-credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         # Use GitHub OIDC provider
-  #         role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
-  #         aws-region: us-east-1
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
       
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v2        
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2        
       
-  #     - name: Build, tag, and push image to Amazon ECR
-  #       id: build-image
-  #       env:
-  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #         ECR_REPOSITORY: with-context-sagemaker-container
-  #         IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
-  #       run: |
-  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --target sagemaker . --build-arg REGION=us-east-1 --build-arg KEY_ID=${{secrets.ACCESS_KEY}} --build-arg SECRET_KEY=${{secrets.SECRET_KEY}}
-  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  #         echo "### :whale: Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
-  #         echo "" >> $GITHUB_STEP_SUMMARY
-  #         echo "" 
-  #         echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
-  #         echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
-  #         echo "| $ECR_REPOSITORY | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
-  #         echo "" >> $GITHUB_STEP_SUMMARY
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: with-context-sagemaker-container
+          IMAGE_TAG: ${{ steps.vars.outputs.REPO_NAME }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --target sagemaker . --build-arg REGION=us-east-1 --build-arg KEY_ID=${{secrets.DVC_ACCESS_KEY}} --build-arg SECRET_KEY=${{secrets.DVC_SECRET_KEY}}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "### :whale: Docker Image Built and Pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "" 
+          echo "| ECR Repository | ECR Tag |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| $ECR_REPOSITORY | $IMAGE_TAG |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
   train-on-sagemaker:
-    # needs: push-to-ecr
+    needs: push-to-ecr
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -86,15 +86,27 @@ jobs:
           poetry install --no-interaction --only runtime
 
       #----------------------------------------------
-      #       Setup CML Runner and Run Training Job     
+      #       Setup CML Runner and Login to AWS   
       #----------------------------------------------
 
       # - name: Setup CML Runner
       #   uses: iterative/setup-cml@v2
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      #----------------------------------------------
+      #       Run Sagemaker Training Script   
+      #----------------------------------------------
 
       - name: Configure and Launch Sagemaker Training Job
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
         id: train
         run: |
-          poetry run python3 ./src/mnist_sagemaker_ci_cd/lib/settings.py
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
