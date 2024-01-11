@@ -156,8 +156,7 @@ CMD ["api"]
 #
 ################################################################
 
-FROM python:3.11-slim as sagemaker
-# FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310 as sagemaker
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310 as sagemaker
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wandb dvc"[s3]" && \
     pip freeze
