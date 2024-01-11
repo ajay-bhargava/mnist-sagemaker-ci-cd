@@ -131,6 +131,7 @@ def train(args):
     torch.manual_seed(args.seed)
 
     rank = hvd.rank()
+    # DVC - Retrieve Data from Remote.
     if rank == 0:
         logger.info("\nRetrieving Data from DVC.\n")
         logger.info(f"\nData Directory: {args.data_dir}\n")
