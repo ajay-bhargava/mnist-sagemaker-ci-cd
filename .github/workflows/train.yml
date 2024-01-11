@@ -60,6 +60,7 @@ jobs:
       #----------------------------------------------
 
       - name: Login to Amazon ECR
+        if: steps.check-ecr.outputs.image-exists == 0
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
