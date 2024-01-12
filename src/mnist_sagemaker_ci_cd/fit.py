@@ -54,18 +54,21 @@ wandb.run.finish(quiet=True)  # type: ignore
 
 # Create a CML Runner Comment
 message = (
-    f":crystal_ball: Hi! Sagemaker training launch detected. :rocket: \n\n",
-    f"You can view the details of this run in the table by clicking on the link below.\n\n",
-    f"| Item | Value |\n",
-    f"| --- | --- |\n",
-    f"| Job Name | {settings.github_sha[:7]} |\n",
-    f"| Training Instance | {TRAINING_INSTANCE} |\n",
-    f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n",
-    f"| S3 Artifacts | [Here]({settings.output_s3_uri}) |\n",
+    f":crystal_ball: Hi! Sagemaker training launch detected. :rocket: \n\n"
+    f"You can view the details of this run in the table by clicking on the link below.\n\n"
+    f"| Item | Value |\n"
+    f"| --- | --- |\n"
+    f"| Job Name | {settings.github_sha[:7]} |\n"
+    f"| Training Instance | {TRAINING_INSTANCE} |\n"
+    f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n"
+    f"| S3 Artifacts | [Here]({settings.output_s3_uri}) |\n"
     f"| Training Logs | [Here]({settings.output_s3_uri}) |\n"
     f"\n\n"
 )
 
+# Convert the tuple to a string
+message_str = "".join(message)
+
 # Write the comment to the PR
 with open("details.txt", "w") as f:
-    f.write(message)
+    f.write(message_str)
