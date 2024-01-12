@@ -24,6 +24,7 @@ import torch.utils.data.distributed
 import wandb
 from torch import nn, optim
 from torchvision import datasets, transforms
+import numpy as np
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -311,8 +312,6 @@ if __name__ == "__main__":
     logger.info("\nStarting Training.\n")
     wandb.init(
         id=os.environ["WANDB_RUN_ID"],
-        project="mnist-sagemaker",
-        entity="bhargava-ajay",
         resume="allow",
     )
     train(parser.parse_args())
