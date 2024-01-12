@@ -21,6 +21,7 @@ import sys
 import horovod.torch as hvd
 import torch.nn.functional as F
 import torch.utils.data.distributed
+import wandb
 from torch import nn, optim
 from torchvision import datasets, transforms
 
@@ -295,4 +296,10 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
     logger.info("\nStarting Training.\n")
+    wandb.init(
+        id=os.environ["WANDB_RUN_ID"],
+        project="mnist-sagemaker",
+        entity="bhargava-ajay",
+        resume="must",
+    )
     train(parser.parse_args())
