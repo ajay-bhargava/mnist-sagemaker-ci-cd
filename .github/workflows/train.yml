@@ -124,6 +124,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
@@ -151,6 +152,7 @@ jobs:
       - name: Configure and Launch Sagemaker Training Job
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
+          WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py

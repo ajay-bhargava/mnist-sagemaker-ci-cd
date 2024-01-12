@@ -38,6 +38,9 @@ class Settings(BaseSettings):
         "arn:aws:iam::220582896887:role/service-role/AmazonSageMaker-ExecutionRole-20210629T120024",
     )
 
+    # W&B Environment Variables
+    wandb_api_key: str = os.environ.get("WANDB_API_KEY", "")
+
 
 if __name__ == "__main__":
     settings = Settings()

@@ -26,6 +26,7 @@ hyperparameters = {
 # Environment Variables
 environment = {
     "WANDB_RUN_ID": id,
+    "WANDB_API_KEY": settings.wandb_api_key,
     "WANDB_PROJECT": settings.github_repo_name,
     "WANDB_RUN_GROUP": settings.github_ref_name,
 }
