@@ -120,18 +120,18 @@ jobs:
       #       Setup Poetry and Install Dependencies    
       #----------------------------------------------
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: poetry
-
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
         with:
             installer-parallel: true
             virtualenvs-create: true
             virtualenvs-in-project: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install Poetry Project
         run: |
