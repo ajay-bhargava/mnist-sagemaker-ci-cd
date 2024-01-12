@@ -313,6 +313,6 @@ if __name__ == "__main__":
         id=os.environ["WANDB_RUN_ID"],
         project="mnist-sagemaker",
         entity="bhargava-ajay",
-        resume="must",
+        resume="allow",
     )
     train(parser.parse_args())
