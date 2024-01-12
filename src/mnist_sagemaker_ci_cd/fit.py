@@ -27,7 +27,7 @@ hyperparameters = {
 environment = {
     "WANDB_RUN_ID": id,
     "WANDB_PROJECT": settings.github_repo_name,
-    "WANDB_GROUP": settings.github_ref_name,
+    "WANDB_RUN_GROUP": settings.github_ref_name,
 }
 
 # Define Estimator
