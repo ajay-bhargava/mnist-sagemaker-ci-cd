@@ -17,7 +17,7 @@ model_path = Estimator.attach(
 ).model_data
 
 model = PyTorchModel(
-    model_data=model_path,
+    model_data=model_path,  # type: ignore
     role=IAM_ROLE,
     sagemaker_session=SESSION,
     source_dir="./src/mnist_sagemaker_ci_cd/lib/",

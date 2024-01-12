@@ -23,9 +23,9 @@ class Settings(BaseSettings):
 
     # Github Actions environment variables
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "main")
-    github_sha: str = os.environ.get("GITHUB_SHA", "123a53v")
+    github_sha: str = os.environ.get("GITHUB_SHA", "56d9b4b9e2d7f683aa54847f5744971056b2911c")
     github_repository: str = os.environ.get(
-        "GITHUB_REPOSITORY", "ajay-bhargava/with-context-sagemaker"
+        "GITHUB_REPOSITORY", "ajay-bhargava/mnist-sagemaker-ci-cd"
     )
     github_repo_name = github_repository.split("/")[-1]
     github_actor: str = os.environ.get("GITHUB_ACTOR", "ajay-bhargava")
