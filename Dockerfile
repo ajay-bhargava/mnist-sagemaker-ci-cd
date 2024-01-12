@@ -98,6 +98,10 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
 
 USER user
 
+# Install development Python dependencies in the virtual environment (including sagemaker training dependencies which are optional)
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
+    poetry install --with dev,test,runtime --no-interaction
+
 # Persist output generated during docker build for the dev container.
 COPY --chown=user:user .pre-commit-config.yaml /workspaces/mnist-sagemaker-ci-cd/
 RUN mkdir -p /opt/build/poetry/ && cp poetry.lock /opt/build/poetry/ && \
