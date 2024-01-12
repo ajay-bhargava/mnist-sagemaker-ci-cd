@@ -154,3 +154,10 @@ jobs:
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
+          echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| CloudWatch | [Here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Fsagemaker$252FTrainingJobs$3FlogStreamNameFilter$3D${GITHUB_SHA:0:7}) |" >> $GITHUB_STEP_SUMMARY
+
+          
