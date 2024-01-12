@@ -15,7 +15,7 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # W&B Variables
 id = wandb.util.generate_id()  # type: ignore
-wandb.init(id=id, project=settings.github_repo_name, entity="bhargava-ajay", resume="must")
+wandb.init(id=id, project=settings.github_repo_name, entity="bhargava-ajay")
 
 # Hyperparameters
 hyperparameters = {
