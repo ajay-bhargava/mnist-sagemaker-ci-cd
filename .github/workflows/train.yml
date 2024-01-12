@@ -1,5 +1,9 @@
 name: Train Sagemaker Model
 on:
+  push:
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -142,8 +146,8 @@ jobs:
       #       Setup CML Runner  
       #----------------------------------------------
 
-      # - name: Setup CML Runner
-      #   uses: iterative/setup-cml@v2
+      - name: Setup CML Runner
+        uses: iterative/setup-cml@v2
 
       #----------------------------------------------
       #       Run Sagemaker Training Script   
@@ -156,6 +160,8 @@ jobs:
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
+          cat details.txt >> report.md
+          cml comment create report.md
           echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY

@@ -16,6 +16,7 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 # W&B Variables
 id = wandb.util.generate_id()  # type: ignore
 wandb.init(id=id, project=settings.github_repo_name, entity="bhargava-ajay")
+wandb_run_url = wandb.run.get_url()  # type: ignore
 
 # Hyperparameters
 hyperparameters = {
@@ -50,3 +51,21 @@ estimator = Estimator(
 
 estimator.fit(job_name=f"{settings.github_sha[:7]}", wait=False, logs="Training")
 wandb.run.finish(quiet=True)  # type: ignore
+
+# Create a CML Runner Comment
+message = (
+    f":crystal_ball: Hi! Sagemaker training launch detected. :rocket: \n\n",
+    f"You can view the details of this run in the table by clicking on the link below.\n\n",
+    f"| Item | Value |\n",
+    f"| --- | --- |\n",
+    f"| Job Name | {settings.github_sha[:7]} |\n",
+    f"| Training Instance | {TRAINING_INSTANCE} |\n",
+    f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n",
+    f"| S3 Artifacts | [Here]({settings.output_s3_uri}) |\n",
+    f"| Training Logs | [Here]({settings.output_s3_uri}) |\n"
+    f"\n\n"
+)
+
+# Write the comment to the PR
+with open("details.txt", "w") as f:
+    f.write(message)
