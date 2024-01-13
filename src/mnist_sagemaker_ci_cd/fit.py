@@ -15,7 +15,13 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # W&B Variables
 id = wandb.util.generate_id()  # type: ignore
-wandb.init(id=id, project=settings.github_repo_name, entity="bhargava-ajay")
+wandb.init(
+    id=id, 
+    project=settings.github_repo_name, 
+    entity="bhargava-ajay",
+    name=settings.github_sha[:7],
+    tags=["debugging", "wandb", "sagemaker"],
+)
 wandb_run_url = wandb.run.get_url()  # type: ignore
 
 # Hyperparameters
@@ -30,6 +36,7 @@ environment = {
     "WANDB_API_KEY": settings.wandb_api_key,
     "WANDB_PROJECT": settings.github_repo_name,
     "WANDB_RUN_GROUP": settings.github_sha[:7],
+    "GITHUB_SHA": settings.github_sha[:7],
 }
 
 # Define Estimator
@@ -38,7 +45,7 @@ estimator = Estimator(
     role=settings.iam_role,
     entry_point="src/mnist_sagemaker_ci_cd/lib/train.py",
     instance_type=TRAINING_INSTANCE,
-    instance_count=2,
+    instance_count=1,
     environment=environment,
     hyperparameters=hyperparameters,  # type: ignore
     base_job_name=settings.output_s3_uri,

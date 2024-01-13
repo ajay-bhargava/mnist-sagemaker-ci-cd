@@ -192,7 +192,7 @@ def train(args):
                         loss.item(),
                     )
                 )
-                wandb.log({"training_loss": loss.item()})
+                wandb.log({"Train/Loss": loss.item()})
         test(model, test_loader)
     save_model(model, args.model_dir)
     wandb.run.finish()
@@ -235,8 +235,12 @@ def test(model, test_loader):
     # Log example data and predictions using wandb
     examples = np.concatenate(examples, axis=0)
     predictions = np.concatenate(predictions, axis=0)
+    table_data = [[wandb.Image(img), pred] for img, pred in zip(examples, predictions)]
+    table = wandb.Table(data=table_data, columns=["images", "predictions"])
+    wandb.log({"table": table})
+
     logger.info(f"Test set: Average loss: {test_loss:.4f}, Accuracy: {100 * test_accuracy:.2f}%\n")
-    wandb.log({"examples": [wandb.Image(img) for img in examples], "predictions": predictions})
+    wandb.log({"test/Loss": test_loss, "test/Accuracy": 100 * test_accuracy})
 
 def save_model(model, model_dir):
     """Save the model."""
@@ -301,5 +305,6 @@ if __name__ == "__main__":
     wandb.init(
         id=os.environ["WANDB_RUN_ID"],
         resume="allow",
+        name=os.environ["GITHUB_SHA"]
     )
     train(parser.parse_args())
