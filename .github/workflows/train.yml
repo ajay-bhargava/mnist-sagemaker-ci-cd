@@ -1,5 +1,8 @@
 name: Train Sagemaker Model
 on:
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -95,8 +98,17 @@ jobs:
         python-version: [ '3.11' ]
     steps:
       #----------------------------------------------
-      #       set environment variables     
+      #       set environment variables and apps     
       #----------------------------------------------
+
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: mercari/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
@@ -120,17 +132,18 @@ jobs:
       #       Setup Poetry and Install Dependencies    
       #----------------------------------------------
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
         with:
             installer-parallel: true
             virtualenvs-create: true
             virtualenvs-in-project: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install Poetry Project
         run: |
@@ -141,8 +154,8 @@ jobs:
       #       Setup CML Runner  
       #----------------------------------------------
 
-      # - name: Setup CML Runner
-      #   uses: iterative/setup-cml@v2
+      - name: Setup CML Runner
+        uses: iterative/setup-cml@v2
 
       #----------------------------------------------
       #       Run Sagemaker Training Script   
@@ -151,13 +164,15 @@ jobs:
       - name: Configure and Launch Sagemaker Training Job
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
+          WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
+          REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
+          cat details.txt >> report.md
+          cml comment create report.md
           echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| CloudWatch | [Here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Fsagemaker$252FTrainingJobs$3FlogStreamNameFilter$3D${GITHUB_SHA:0:7}) |" >> $GITHUB_STEP_SUMMARY
-
-          
+          echo "| Sagemaker | [Here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${GITHUB_SHA:0:7}) |" >> $GITHUB_STEP_SUMMARY

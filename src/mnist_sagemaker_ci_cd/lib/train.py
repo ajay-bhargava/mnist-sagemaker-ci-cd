@@ -1,16 +1,4 @@
-"""This module contains the training logic for BERTtopic."""
-# Copyright 2017-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"). You
-# may not use this file except in compliance with the License. A copy of
-# the License is located at
-#
-#     http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is
-# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-# ANY KIND, either express or implied. See the License for the specific
-# language governing permissions and limitations under the License.
+"""This module contains the training logic for MNIST."""
 import argparse
 import json
 import logging
@@ -21,8 +9,10 @@ import sys
 import horovod.torch as hvd
 import torch.nn.functional as F
 import torch.utils.data.distributed
+import wandb
 from torch import nn, optim
 from torchvision import datasets, transforms
+import numpy as np
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -167,6 +157,8 @@ def train(args):
 
     model = Net()
 
+    wandb.watch(model)
+
     lr_scaler = hvd.size()
 
     model.cuda()
@@ -200,8 +192,10 @@ def train(args):
                         loss.item(),
                     )
                 )
+                wandb.log({"Train/Loss": loss.item()})
         test(model, test_loader)
     save_model(model, args.model_dir)
+    wandb.run.finish()
 
 
 def _metric_average(val, name):
@@ -210,12 +204,14 @@ def _metric_average(val, name):
     avg_tensor = hvd.allreduce(tensor, name=name)
     return avg_tensor.item()
 
-
 def test(model, test_loader):
     """Validate the model."""
     model.eval()
     test_loss = 0
     test_accuracy = 0
+    examples = []
+    predictions = []
+    
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.cuda(), target.cuda()
@@ -223,6 +219,10 @@ def test(model, test_loader):
             test_loss += F.nll_loss(output, target, size_average=False).item()  # sum up batch loss
             pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
             test_accuracy += pred.eq(target.view_as(pred)).sum().item()
+            
+            # Log example data and predictions
+            examples.append(data.cpu().detach().numpy())
+            predictions.append(pred.cpu().detach().numpy())
 
     # Horovod: use test_sampler to determine the number of examples in this worker's partition.
     test_loss /= len(test_loader.sampler)
@@ -231,9 +231,24 @@ def test(model, test_loader):
     # Horovod: average metric values across workers.
     test_loss = _metric_average(test_loss, "avg_loss")
     test_accuracy = _metric_average(test_accuracy, "avg_accuracy")
+    
+    # Log example data and predictions using wandb
+    examples = np.concatenate(examples, axis=0)
+    predictions = np.concatenate(predictions, axis=0)
+
+    # Select every 100th image and prediction
+    selected_examples = examples[::100]
+    selected_predictions = predictions[::100]
+
+    # Convert predictions to integers
+    selected_predictions = selected_predictions.astype(int)
+
+    table_data = [[wandb.Image(img), pred] for img, pred in zip(selected_examples, selected_predictions)]
+    table = wandb.Table(data=table_data, columns=["images", "predictions"])
+    wandb.log({"table": table})
 
     logger.info(f"Test set: Average loss: {test_loss:.4f}, Accuracy: {100 * test_accuracy:.2f}%\n")
-
+    wandb.log({"test/Loss": test_loss, "test/Accuracy": 100 * test_accuracy})
 
 def save_model(model, model_dir):
     """Save the model."""
@@ -287,7 +302,7 @@ if __name__ == "__main__":
         help="backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)",
     )
 
-    # Container Environment
+    # Sagemaker specific environment variables
     parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
@@ -295,4 +310,9 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
     logger.info("\nStarting Training.\n")
+    wandb.init(
+        id=os.environ["WANDB_RUN_ID"],
+        resume="allow",
+        name=os.environ["GITHUB_SHA"]
+    )
     train(parser.parse_args())
