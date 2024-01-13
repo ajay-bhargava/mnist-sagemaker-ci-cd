@@ -235,7 +235,15 @@ def test(model, test_loader):
     # Log example data and predictions using wandb
     examples = np.concatenate(examples, axis=0)
     predictions = np.concatenate(predictions, axis=0)
-    table_data = [[wandb.Image(img), pred] for img, pred in zip(examples, predictions)]
+
+    # Select every 100th image and prediction
+    selected_examples = examples[::100]
+    selected_predictions = predictions[::100]
+
+    # Convert predictions to integers
+    selected_predictions = selected_predictions.astype(int)
+
+    table_data = [[wandb.Image(img), pred] for img, pred in zip(selected_examples, selected_predictions)]
     table = wandb.Table(data=table_data, columns=["images", "predictions"])
     wandb.log({"table": table})
 

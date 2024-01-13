@@ -98,8 +98,16 @@ jobs:
         python-version: [ '3.11' ]
     steps:
       #----------------------------------------------
-      #       set environment variables     
+      #       set environment variables and apps     
       #----------------------------------------------
+
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: navikt/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          private-key: ${{secrets.GH_APP_PEM}}
+
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
@@ -156,6 +164,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
+          REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
