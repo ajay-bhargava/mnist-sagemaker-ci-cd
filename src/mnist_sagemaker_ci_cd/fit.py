@@ -68,9 +68,8 @@ message = (
     f"| Job Name | {settings.github_sha[:7]} |\n"
     f"| Training Instance | {TRAINING_INSTANCE} |\n"
     f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n"
-    f"| S3 Artifacts | [Here]({settings.output_s3_uri}) |\n"
-    f"| Training Logs | [Here]({settings.output_s3_uri}) |\n"
-    f"\n\n"
+    f"| S3 Artifacts | [Here]({settings.s3_http_url}) |\n"
+    f"| Training Logs | [Here]({settings.cloudwatch_logs}) |\n"
 )
 
 # Convert the tuple to a string
