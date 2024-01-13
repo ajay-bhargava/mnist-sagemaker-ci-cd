@@ -103,10 +103,11 @@ jobs:
 
       - name: Establish Github App Bot
         id: github-app-token
-        uses: navikt/github-app-token-generator@v1
+        uses: mercari/github-app-token-generator@v1
         with:
           app-id: ${{secrets.GH_APP_ID}}
-          private-key: ${{secrets.GH_APP_PEM}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
 
       - name: Set Environment Variables
         id: vars
