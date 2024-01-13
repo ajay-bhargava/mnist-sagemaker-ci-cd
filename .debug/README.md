@@ -5,17 +5,18 @@
   - [Creating the Instance](#creating-the-instance)
   - [Retrieving the Instance ID and IP Address](#retrieving-the-instance-id-and-ip-address)
   - [Connecting to the Instance](#connecting-to-the-instance)
+  - [Destroying the Instance](#destroying-the-instance)
 - [Pushing a Docker Image to ECR](#pushing-a-docker-image-to-ecr)
   - [Docker Instructions](#docker-instructions)
   - [Build and Push the Docker Image](#build-and-push-the-docker-image)
   - [Run the Script](#run-the-script)
 
-
 # Launching an Instance for Sagemaker Local Mode
 
-In some cases, you may want to run Sagemaker locally. This is especially useful for debugging and testing. In order to do this, you will need to launch an EC2 instance. This section details how to launch an EC2 instance locally. 
+In some cases, you may want to run Sagemaker locally. This is especially useful for debugging and testing. In order to do this, you will need to launch an EC2 instance. This section details how to launch an EC2 instance locally.
 
 ## Defining the Instance Configuration
+
 Copy the following into a file called `instance-configuration.json`. Be sure to replace with your name for the Created Key.
 
 <details>
@@ -23,58 +24,42 @@ Copy the following into a file called `instance-configuration.json`. Be sure to 
 
 ```json
 {
-    "MaxCount": 1,
-    "MinCount": 1,
-    "ImageId": "ami-014e66baad82985a5",
-    "InstanceType": "g4dn.xlarge",
-    "KeyName": "developer-key",
-    "EbsOptimized": true,
-    "BlockDeviceMappings": [
-        {
-            "DeviceName": "/dev/sda1",
-            "Ebs": {
-                "Encrypted": false,
-                "DeleteOnTermination": true,
-                "Iops": 3000,
-                "SnapshotId": "snap-0392bdfc0e5831bbe",
-                "VolumeSize": 50,
-                "VolumeType": "gp3",
-                "Throughput": 125
-            }
-        }
-    ],
-    "NetworkInterfaces": [
-        {
-            "SubnetId": "subnet-04cefa7e942ab5f89",
-            "AssociatePublicIpAddress": true,
-            "DeviceIndex": 0,
-            "Groups": [
-                "sg-0c567cb5bea595f99"
-            ]
-        }
-    ],
-    "TagSpecifications": [
-        {
-            "ResourceType": "instance",
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Value": "Scratchpad"
-                },
-                {
-                    "Key": "Created By",
-                    "Value": "Ajay"
-                }
-            ]
-        }
-    ],
-    "PrivateDnsNameOptions": {
-        "HostnameType": "ip-name",
-        "EnableResourceNameDnsARecord": true,
-        "EnableResourceNameDnsAAAARecord": false
+  "MaxCount": 1,
+  "MinCount": 1,
+  "ImageId": "ami-0aa53dab5294598ec",
+  "InstanceType": "g4dn.xlarge",
+  "KeyName": "developer-key",
+  "EbsOptimized": true,
+  "BlockDeviceMappings": [
+    {
+      "DeviceName": "/dev/xvda",
+      "Ebs": {
+        "Encrypted": false,
+        "DeleteOnTermination": true,
+        "Iops": 3000,
+        "SnapshotId": "snap-0037d48fb814838bb",
+        "VolumeSize": 100,
+        "VolumeType": "gp3",
+        "Throughput": 125
+      }
     }
+  ],
+  "NetworkInterfaces": [
+    {
+      "SubnetId": "subnet-0bfd881d0830f19e1",
+      "AssociatePublicIpAddress": true,
+      "DeviceIndex": 0,
+      "Groups": ["sg-0c567cb5bea595f99"]
+    }
+  ],
+  "PrivateDnsNameOptions": {
+    "HostnameType": "ip-name",
+    "EnableResourceNameDnsARecord": false,
+    "EnableResourceNameDnsAAAARecord": false
+  }
 }
 ```
+
 </details>
 
 ## Creating the Instance
@@ -99,7 +84,21 @@ Use this to connect to the instance replacing `${PublicDnsName}` with the value 
 
 ```bash
 ssh -i "~/.ssh/developer-key.pem" ec2-user@${PublicDnsName}
-``` 
+```
+
+## Destroying the Instance
+
+Use this to locate the instance ID and destroy the instance:
+
+```bash
+InstanceId=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Scratchpad" --query "Reservations[*].Instances[*].[InstanceId]" --output text)
+```
+
+Then after selection, run the following command to destroy the instance:
+
+```bash
+aws ec2 terminate-instances --instance-ids ${InstanceId}
+```
 
 # Pushing a Docker Image to ECR
 
@@ -107,7 +106,7 @@ In the following example, we will push a Docker image to ECR. This Docker image 
 
 ## Docker Instructions
 
-In the repository main directory lives a `Dockerfile`. It contains a specific stage for `Sagemaker`. 
+In the repository main directory lives a `Dockerfile`. It contains a specific stage for `Sagemaker`.
 
 ```dockerfile
 FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.0-gpu-py310 as sagemaker
@@ -122,8 +121,7 @@ ENV AWS_SECRET_ACCESS_KEY=${SECRET_KEY}
 
 ## Build and Push the Docker Image
 
-This shell script allows one to push the Docker Image built to ECR. Save this file as `build-and-push.sh` in the repository main directory. 
-
+This shell script allows one to push the Docker Image built to ECR. Save this file as `build-and-push.sh` in the repository main directory.
 
 <details>
 <summary> Push Docker Image to ECR </summary>
@@ -178,4 +176,4 @@ Run the script with the following command:
 bash build-and-push.sh sagemaker-training-container ${DOCKERFILE} ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_KEY}
 ```
 
-The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User. 
+The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User.

@@ -1,0 +1,90 @@
+name: Deploy Sagemaker Endpoint
+on:
+  pull_request:
+    branches:
+      - master
+    types: [review_requested]
+
+jobs:
+  check_reviewer:
+    runs-on: ubuntu-latest
+    if: github.event.requested_reviewer.name == 'ajay-bhargava'
+    permissions:
+      id-token: write
+      contents: write
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      #----------------------------------------------
+      #       set environment variables and apps
+      #----------------------------------------------
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: mercari/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+
+      - name: Set Environment Variables
+        id: vars
+        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      #----------------------------------------------
+      #       check-out repo and login to AWS
+      #----------------------------------------------
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      #----------------------------------------------
+      #       Setup Poetry and Install Dependencies
+      #----------------------------------------------
+
+      - name: Install Poetry Action
+        uses: snok/install-poetry@v1.3.4
+        with:
+          installer-parallel: true
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+
+      - name: Install Poetry Project
+        run: |
+          poetry env use ${{ matrix.python-version }}
+          poetry install --no-interaction --only runtime
+
+      #----------------------------------------------
+      #       Setup CML Runner
+      #----------------------------------------------
+
+      - name: Setup CML Runner
+        uses: iterative/setup-cml@v2
+
+      #----------------------------------------------
+      #       Run Sagemaker model deployment
+      #----------------------------------------------
+
+      - name: Deploy Sagemaker Endpoint
+        env:
+          SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
+          REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
+        id: deploy
+        run: |
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
+          cat details.txt >> report.md
+          cml comment create report.md
