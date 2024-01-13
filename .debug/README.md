@@ -179,3 +179,57 @@ bash build-and-push.sh sagemaker-training-container ${DOCKERFILE} ${AWS_ACCESS_K
 ```
 
 The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User. 
+
+# Debugging Training Code
+
+Debugging training code must be accomplished on an EC2 instance (defined above). The instance **must** be stood up and torn down. Here are some tips to getting started properly. 
+
+## AWS Setup
+
+Start with the pre-configured EC2 profile (specifially with the AMI ID: `ami-014e66baad82985a5`)
+
+
+## Install Starship and Pytorch
+
+This set up ensures that all future development happens within the Pytorch Conda Environment. 
+
+<details>
+<summary> Starship Installation Instructions</summary>
+
+```bash
+sudo su root
+```
+
+then:
+
+```bash
+curl -sS https://starship.rs/install.sh | sh
+```
+
+then : 
+
+```bash
+exit
+```
+
+then copy the following to `~/.bashrc`: 
+
+```bash
+echo `eval "$(starship init bash)"` >> ~/.bashrc
+echo `eval conda activate pytorch` >> ~/.bashrc
+```
+</details>
+
+## Teardown
+
+When done debugging, teardown the instance by logging out and then running:
+
+```bash
+InstanceId=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Scratchpad" --query "Reservations[*].Instances[*].[InstanceId]" --output text)
+```
+
+Then after selection, run the following command to destroy the instance:
+
+```bash
+aws ec2 terminate-instances --instance-ids ${InstanceId}
+```
