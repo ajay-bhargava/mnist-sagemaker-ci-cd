@@ -14,10 +14,10 @@ SESSION = sagemaker.Session(boto3.Session(region_name="us-east-1"))
 TRAINING_INSTANCE = "ml.g4dn.xlarge"
 
 # W&B Variables
-id = wandb.util.generate_id()  # type: ignore
+run_id = wandb.util.generate_id()  # type: ignore
 wandb.init(
-    id=id, 
-    project=settings.github_repo_name, 
+    id=run_id,
+    project=settings.github_repo_name,
     entity="bhargava-ajay",
     name=settings.github_sha[:7],
     tags=["debugging", "wandb", "sagemaker"],
@@ -32,7 +32,7 @@ hyperparameters = {
 
 # Environment Variables
 environment = {
-    "WANDB_RUN_ID": id,
+    "WANDB_RUN_ID": run_id,
     "WANDB_API_KEY": settings.wandb_api_key,
     "WANDB_PROJECT": settings.github_repo_name,
     "WANDB_RUN_GROUP": settings.github_sha[:7],
