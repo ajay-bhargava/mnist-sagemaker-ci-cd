@@ -28,6 +28,7 @@ wandb_run_url = wandb.run.get_url()  # type: ignore
 hyperparameters = {
     "epochs": 10,
     "backend": "gloo",
+    "momentum": 0.9,
 }
 
 # Environment Variables

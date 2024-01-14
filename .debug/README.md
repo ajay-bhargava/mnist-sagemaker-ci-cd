@@ -10,6 +10,11 @@
   - [Docker Instructions](#docker-instructions)
   - [Build and Push the Docker Image](#build-and-push-the-docker-image)
   - [Run the Script](#run-the-script)
+- [Debugging Training Code](#debugging-training-code)
+  - [AWS Setup](#aws-setup)
+  - [Install Starship and Pytorch](#install-starship-and-pytorch)
+  - [Docker Environment](#docker-environment)
+  - [Teardown](#teardown)
 
 # Launching an Instance for Sagemaker Local Mode
 
@@ -52,6 +57,9 @@ Copy the following into a file called `instance-configuration.json`. Be sure to 
       "Groups": ["sg-0c567cb5bea595f99"]
     }
   ],
+  "IamInstanceProfile": {
+    "Arn": "arn:aws:iam::220582896887:instance-profile/AmazonSSMRoleForInstancesQuickSetup"
+  },
   "PrivateDnsNameOptions": {
     "HostnameType": "ip-name",
     "EnableResourceNameDnsARecord": false,
@@ -176,20 +184,19 @@ Run the script with the following command:
 bash build-and-push.sh sagemaker-training-container ${DOCKERFILE} ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_KEY}
 ```
 
-The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User. 
+The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User.
 
 # Debugging Training Code
 
-Debugging training code must be accomplished on an EC2 instance (defined above). The instance **must** be stood up and torn down. Here are some tips to getting started properly. 
+Debugging training code must be accomplished on an EC2 instance (defined above). The instance **must** be stood up and torn down. Here are some tips to getting started properly.
 
 ## AWS Setup
 
 Start with the pre-configured EC2 profile (specifially with the AMI ID: `ami-014e66baad82985a5`)
 
-
 ## Install Starship and Pytorch
 
-This set up ensures that all future development happens within the Pytorch Conda Environment. 
+This set up ensures that all future development happens within the Pytorch Conda Environment.
 
 <details>
 <summary> Starship Installation Instructions</summary>
@@ -204,19 +211,30 @@ then:
 curl -sS https://starship.rs/install.sh | sh
 ```
 
-then : 
+then :
 
 ```bash
 exit
 ```
 
-then copy the following to `~/.bashrc`: 
+then copy the following to `~/.bashrc`:
 
 ```bash
 echo `eval "$(starship init bash)"` >> ~/.bashrc
-echo `eval conda activate pytorch` >> ~/.bashrc
 ```
+
 </details>
+
+## Docker Environment
+
+Managing dependencies is a total waste of time. It is smarter and more efficient to use Docker to manage dependencies. The following instructions will help you get started with the Sagemaker Docker Container that the training code will run in.
+
+<details>
+<summary> Docker Installation Instructions</summary>
+
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 220582896887.dkr.ecr.us-east-1.amazonaws.com
+```
 
 ## Teardown
 
@@ -231,4 +249,5 @@ Then after selection, run the following command to destroy the instance:
 ```bash
 aws ec2 terminate-instances --instance-ids ${InstanceId}
 ```
+
 The AWS Access Key ID and AWS Secret Key can be found in the AWS Console under IAM for DVC Sagemaker User.
