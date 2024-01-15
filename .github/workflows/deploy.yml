@@ -3,12 +3,12 @@ on:
   pull_request:
     branches:
       - master
-    types: [review_requested]
+    types: [assigned]
 
 jobs:
   check_reviewer:
     runs-on: ubuntu-latest
-    if: github.event.requested_reviewer.name == 'ajay-bhargava'
+    if: github.event.assignee.name == 'ajay-bhargava'
     permissions:
       id-token: write
       contents: write
