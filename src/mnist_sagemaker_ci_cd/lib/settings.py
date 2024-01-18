@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Github Actions environment variables
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "main")
-    github_sha: str = os.environ.get("GITHUB_SHA", "56d9b4b9e2d7f683aa54847f5744971056b2911c")
+    github_sha: str = os.environ.get("EVENT_SHA", "56d9b4b9e2d7f683aa54847f5744971056b2911c")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "ajay-bhargava/mnist-sagemaker-ci-cd"
     )
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
         "SAGEMAKER_IAM_ROLE",
         "arn:aws:iam::220582896887:role/service-role/AmazonSageMaker-ExecutionRole-20210629T120024",
     )
-    cloudwatch_logs: str = f"https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${short_sha}"
+    cloudwatch_logs: str = rf"https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${short_sha}"
 
     # W&B Environment Variables
     wandb_api_key: str = os.environ.get("WANDB_API_KEY", "")

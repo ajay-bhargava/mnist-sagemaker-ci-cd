@@ -43,6 +43,7 @@ sagemaker-training = ">=4.7.0"
 sagemaker = "^2.203.0"
 dvc = {extras = ["s3"], version = "^3.37.0"}
 wandb = "^0.16.2"
+mangum = "^0.17.0"
 
 [tool.poetry.group.sagemaker]
 optional = true
