@@ -1,9 +1,10 @@
 name: Deploy Sagemaker Endpoint
 on:
-  pull_request:
-    branches:
-      - master
-    types: [assigned]
+  #   pull_request:
+  #     branches:
+  #       - master
+  #     types: [assigned]
+  workflow_dispatch:
 
 jobs:
   check_reviewer:

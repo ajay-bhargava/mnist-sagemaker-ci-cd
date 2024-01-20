@@ -166,7 +166,7 @@ jobs:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
