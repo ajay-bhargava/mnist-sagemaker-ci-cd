@@ -90,7 +90,7 @@ USER root
 RUN --mount=type=cache,target=/var/cache/apt/ \
     --mount=type=cache,target=/var/lib/apt/ \
     apt-get update && \
-    apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh awscli nodejs npm && \
+    apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh awscli nodejs npm gh && \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
     npm install serverless -g && \
     usermod --shell /usr/bin/zsh user && \
