@@ -1,8 +1,8 @@
 name: Train Sagemaker Model
 on:
-  pull_request:
-    branches:
-      - master
+  # pull_request:
+  #   branches:
+  #     - master
   workflow_dispatch:
 
 jobs:
@@ -176,4 +176,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Sagemaker | [Here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${GITHUB_SHA:0:7}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sagemaker | [Here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${EVENT_SHA:0:7}) |" >> $GITHUB_STEP_SUMMARY
