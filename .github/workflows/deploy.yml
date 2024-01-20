@@ -83,6 +83,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
