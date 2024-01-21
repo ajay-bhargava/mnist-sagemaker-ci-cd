@@ -3,18 +3,64 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "data.dvc"
-      - "src/mnist_sagemaker_ci_cd/lib/train.py"
-      - "src/mnist_sagemaker_ci_cd/lib/settings.py"
-      - "src/mnist_sagemaker_ci_cd/fit.py"
-      - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
-      - "Dockerfile"
-      - ".github/workflows/train.yml"
   workflow_dispatch:
 
 jobs:
+  #----------------------------------------------------------------
+  #   Check if there are files changed only after the first run
+  #----------------------------------------------------------------
+  check_files_changed:
+    name: Check if files changed after first run.
+    runs-on: ubuntu-latest
+    if: ${{ github.run_number > 1 }}
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      #----------------------------------------------
+      #       set environment variables and apps
+      #----------------------------------------------
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: mercari/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+
+      - name: Set Environment Variables
+        id: vars
+        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+      #----------------------------------------------
+      #          check-out repo latest commit
+      #----------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      #----------------------------------------------
+      #         setup changed-files@v42 action
+      #----------------------------------------------
+      - name: Check if files changed
+        id: changed_files
+        uses: tj-actions/changed-files@v42
+        with:
+          files_yaml: |
+            train: 
+              - "data.dvc"
+              - "src/mnist_sagemaker_ci_cd/lib/train.py"
+              - "src/mnist_sagemaker_ci_cd/lib/settings.py"
+              - "src/mnist_sagemaker_ci_cd/fit.py"
+              - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
+              - "Dockerfile"
+              - ".github/workflows/train.yml"
+    outputs:
+      files_changed: ${{steps.changed_files.outputs.train_any_changed}}
   push-to-ecr:
+    needs: check_files_changed
+    if: |
+      always() &&
+      (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
