@@ -11,7 +11,7 @@ jobs:
   #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    name: Check if files changed after first run.
+    name: Check if files changed between PR commits.
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -62,6 +62,7 @@ jobs:
     outputs:
       files_changed: ${{steps.changed_files.outputs.train_any_changed}}
   push-to-ecr:
+    name: Push Docker Image to ECR.
     needs: check_files_changed
     if: |
       always() &&
@@ -143,6 +144,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
   train-on-sagemaker:
+    name: Train Sagemaker Model.
     needs: push-to-ecr
     runs-on: ubuntu-latest
     permissions:

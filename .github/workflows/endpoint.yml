@@ -12,7 +12,7 @@ jobs:
   #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    name: Check if files changed after first run.
+    name: Check if files changed after PR commit.
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -34,6 +34,7 @@ jobs:
         run: |
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
           echo "This is run number ${{ github.run_number }}"
+          echo "This is run attempt ${{ github.run_attempt }}"
       #----------------------------------------------
       #          check-out repo latest commit
       #----------------------------------------------
@@ -60,6 +61,7 @@ jobs:
       files_changed: ${{steps.changed_files.outputs.deploy_any_changed}}
 
   deploy_endpoint:
+    name: Deploy Sagemaker Endpoint...
     needs:
       - check_files_changed
     if: |
