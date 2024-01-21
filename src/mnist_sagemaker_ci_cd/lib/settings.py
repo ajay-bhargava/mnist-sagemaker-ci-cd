@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Github Actions environment variables
     github_ref_name: str = os.environ.get("GITHUB_REF_NAME", "main")
-    github_sha: str = os.environ.get("EVENT_SHA", "6i3f9b4b9e2d7f683aa54847f5744971056b2911c")
+    github_sha: str = os.environ.get("EVENT_SHA", "6r3f9b4b9e2d7f683aa54847f5744971056b2911c")
     github_repository: str = os.environ.get(
         "GITHUB_REPOSITORY", "ajay-bhargava/mnist-sagemaker-ci-cd"
     )
