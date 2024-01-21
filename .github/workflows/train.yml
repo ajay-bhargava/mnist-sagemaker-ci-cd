@@ -10,7 +10,7 @@ on:
       - "src/mnist_sagemaker_ci_cd/fit.py"
       - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
       - "Dockerfile"
-      - "**/train.yml"
+      - ".github/workflows/train.yml"
   workflow_dispatch:
 
 jobs:

@@ -3,22 +3,20 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "src/mnist_sagemaker_ci_cd/deploy.py"
-      - "src/mnist_sagemaker_ci_cd/lib/inference.py"
     types: [assigned]
   workflow_dispatch:
 
 jobs:
-  check_reviewer:
+  #----------------------------------------------------------------
+  #   Check if there are files changed only after the first run
+  #----------------------------------------------------------------
+  check_files_changed:
+    name: Check if files changed after first run.
     runs-on: ubuntu-latest
-    if: github.event.assignee.login == 'ajay-bhargava'
+    if: ${{ github.run_number > 1 }}
     permissions:
       id-token: write
       contents: write
-    strategy:
-      matrix:
-        python-version: ["3.11"]
     steps:
       #----------------------------------------------
       #       set environment variables and apps
@@ -34,11 +32,59 @@ jobs:
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+      #----------------------------------------------
+      #          check-out repo latest commit
+      #----------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      #----------------------------------------------
+      #         setup changed-files@v42 action
+      #----------------------------------------------
+      - name: Check if files changed
+        id: changed_files
+        uses: tj-actions/changed-files@v42
+        with:
+          files_yaml: |
+            deploy: 
+              - src/mnist_sagemaker_ci_cd/deploy.py
+              - src/mnist_sagemaker_ci_cd/lib/inference.py
+    outputs:
+      files_changed: ${{steps.changed_files.outputs.deploy_any_changed}}
 
+  deploy_endpoint:
+    needs:
+      - check_files_changed
+    if: |
+      always() &&
+      (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped') &&
+      github.event.assignee.login == 'ajay-bhargava'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    strategy:
+      matrix:
+        python-version: [3.11]
+    steps:
+      #----------------------------------------------
+      #       set environment variables and apps
+      #----------------------------------------------
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: mercari/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+
+      - name: Set Environment Variables
+        id: vars
+        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -49,11 +95,9 @@ jobs:
           # Use GitHub OIDC provider
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
-
       #----------------------------------------------
       #       Setup Poetry and Install Dependencies
       #----------------------------------------------
-
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
         with:
@@ -71,18 +115,14 @@ jobs:
         run: |
           poetry env use ${{ matrix.python-version }}
           poetry install --no-interaction --only runtime
-
       #----------------------------------------------
       #       Setup CML Runner
       #----------------------------------------------
-
       - name: Setup CML Runner
         uses: iterative/setup-cml@v2
-
       #----------------------------------------------
       #       Run Sagemaker model deployment
       #----------------------------------------------
-
       - name: Deploy Sagemaker Endpoint
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
@@ -93,7 +133,8 @@ jobs:
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
           cat details.txt >> report.md
           cml comment create report.md
-
       #----------------------------------------------
-      #       Future State: Run A/B Test Code on Endpoint (Could be part of the same deploy.py script)
+      #       Future State: Run A/B Test
+      #       Code on Endpoint(Could be part of
+      #       the same deploy.py script)
       #----------------------------------------------
