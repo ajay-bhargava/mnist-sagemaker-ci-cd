@@ -33,8 +33,6 @@ jobs:
         id: vars
         run: |
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "This is run number ${{ github.run_number }}"
-          echo "This is run attempt ${{ github.run_attempt }}"
       #----------------------------------------------
       #          check-out repo latest commit
       #----------------------------------------------

@@ -32,6 +32,7 @@ jobs:
         id: vars
         run: |
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "This is run attempt ${{ github.run_attempt }}"
       #----------------------------------------------
       #          check-out repo latest commit
       #----------------------------------------------
@@ -48,13 +49,13 @@ jobs:
         with:
           files_yaml: |
             train: 
-              - "data.dvc"
-              - "src/mnist_sagemaker_ci_cd/lib/train.py"
-              - "src/mnist_sagemaker_ci_cd/lib/settings.py"
-              - "src/mnist_sagemaker_ci_cd/fit.py"
-              - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
-              - "Dockerfile"
-              - ".github/workflows/train.yml"
+              - data.dvc
+              - src/mnist_sagemaker_ci_cd/lib/train.py
+              - src/mnist_sagemaker_ci_cd/lib/settings.py
+              - src/mnist_sagemaker_ci_cd/fit.py
+              - src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
+              - Dockerfile
+              - .github/workflows/train.yml
 
       - name: Set output
         if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
