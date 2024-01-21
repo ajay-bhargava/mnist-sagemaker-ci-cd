@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - master
-      - test
     types: [assigned]
   workflow_dispatch:
 
@@ -53,7 +52,6 @@ jobs:
             deploy: 
               - src/mnist_sagemaker_ci_cd/deploy.py
               - src/mnist_sagemaker_ci_cd/lib/inference.py
-              - .github/workflows/endpoint.yml
 
       - name: Set output
         if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
@@ -104,7 +102,7 @@ jobs:
         id: master_base_sha
         uses: nrwl/nx-set-shas@v4
         with:
-          main-branch-name: test
+          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -148,9 +146,9 @@ jobs:
           EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
         id: deploy
         run: |
-          # poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
-          # cat details.txt >> report.md
-          # cml comment create report.md
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
+          cat details.txt >> report.md
+          cml comment create report.md
           echo "Event SHA: ${EVENT_SHA:0:7}" >> $GITHUB_STEP_SUMMARY
       #----------------------------------------------
       #       Future State: Run A/B Test

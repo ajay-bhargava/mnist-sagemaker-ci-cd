@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - master
-      - test
   workflow_dispatch:
 
 jobs:
@@ -52,11 +51,9 @@ jobs:
             train: 
               - data.dvc
               - src/mnist_sagemaker_ci_cd/lib/train.py
-              - src/mnist_sagemaker_ci_cd/lib/settings.py
               - src/mnist_sagemaker_ci_cd/fit.py
               - src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
               - Dockerfile
-              - .github/workflows/train.yml
 
       - name: Set output
         if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
@@ -182,7 +179,7 @@ jobs:
         id: master_branch_sha
         uses: nrwl/nx-set-shas@v4
         with:
-          main-branch-name: test
+          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -227,9 +224,9 @@ jobs:
           EVENT_SHA: ${{steps.master_branch_sha.outputs.base}}
         id: train
         run: |
-          # poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
-          # cat details.txt >> report.md
-          # cml comment create report.md
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
+          cat details.txt >> report.md
+          cml comment create report.md
           echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY
