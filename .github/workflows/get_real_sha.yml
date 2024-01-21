@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - master
+      - test
   workflow_dispatch:
 
 jobs:
@@ -23,6 +24,8 @@ jobs:
       # ===========================================================================
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: test
 
       - run: |
           echo "BASE: ${{ env.NX_BASE }}"
