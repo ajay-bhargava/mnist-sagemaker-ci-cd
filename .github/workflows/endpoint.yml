@@ -3,17 +3,17 @@ on:
   pull_request:
     branches:
       - master
+      - test
     types: [assigned]
   workflow_dispatch:
 
 jobs:
   #----------------------------------------------------------------
-  #   Check if there are files changed only after the first run
+  #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
     name: Check if files changed after first run.
     runs-on: ubuntu-latest
-    if: ${{ github.run_number > 2 }}
     permissions:
       id-token: write
       contents: write
@@ -93,6 +93,14 @@ jobs:
       #----------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Base SHA
+        id: master_base_sha
+        uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: test
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -133,12 +141,13 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_SHA: ${{steps.master_branch_sha.outputs.base}}
         id: deploy
         run: |
-          poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
-          cat details.txt >> report.md
-          cml comment create report.md
+          # poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
+          # cat details.txt >> report.md
+          # cml comment create report.md
+          echo "Event SHA: ${EVENT_SHA:0:7}" >> $GITHUB_STEP_SUMMARY
       #----------------------------------------------
       #       Future State: Run A/B Test
       #       Code on Endpoint(Could be part of
