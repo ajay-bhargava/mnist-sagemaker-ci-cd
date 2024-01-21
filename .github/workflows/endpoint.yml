@@ -14,7 +14,6 @@ jobs:
   check_files_changed:
     name: Check if files changed after PR commit.
     runs-on: ubuntu-latest
-    if: github.run_attempt > 1
     permissions:
       id-token: write
       contents: write
@@ -52,6 +51,7 @@ jobs:
             deploy: 
               - src/mnist_sagemaker_ci_cd/deploy.py
               - src/mnist_sagemaker_ci_cd/lib/inference.py
+              - .github/workflows/endpoint.yml
 
       - name: Set output
         if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
@@ -88,7 +88,9 @@ jobs:
 
       - name: Set Environment Variables
         id: vars
-        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "This is Github Run Attempt #${{github.run_attempt}}" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
@@ -142,7 +144,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{steps.master_branch_sha.outputs.base}}
+          EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
         id: deploy
         run: |
           # poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
