@@ -14,6 +14,7 @@ jobs:
   check_files_changed:
     name: Check if files changed after PR commit.
     runs-on: ubuntu-latest
+    if: github.run_attempt > 1
     permissions:
       id-token: write
       contents: write
