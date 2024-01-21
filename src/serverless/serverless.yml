@@ -17,7 +17,7 @@ provider:
   timeout: 29
   memorySize: 2048
   environment:
-    SAGEMAKER_DEPLOYED_ENDPOINT: 8qgf6d3
+    SAGEMAKER_DEPLOYED_ENDPOINT: ${env:DEPLOY_SHA}
   iam:
     role:
       statements:
@@ -25,7 +25,6 @@ provider:
           Action: "sagemaker:*"
           Resource: "*"
 
-# The `functions` block defines what code to deploy
 custom:
   pythonRequirements:
     # aws lambda has an after-extraction size limit - with native dependencies we pass the limit quickly
@@ -36,6 +35,7 @@ custom:
     useDownloadCache: false
     useStaticCache: false
 
+# The `functions` block defines what code to deploy
 functions:
   api:
     handler: api.handler

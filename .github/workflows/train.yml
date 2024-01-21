@@ -1,8 +1,16 @@
 name: Train Sagemaker Model
 on:
-  # pull_request:
-  #   branches:
-  #     - master
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "data.dvc"
+      - "src/mnist_sagemaker_ci_cd/lib/train.py"
+      - "src/mnist_sagemaker_ci_cd/lib/settings.py"
+      - "src/mnist_sagemaker_ci_cd/fit.py"
+      - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
+      - "Dockerfile"
+      - "**/train.yml"
   workflow_dispatch:
 
 jobs:
@@ -28,11 +36,9 @@ jobs:
           # Use GitHub OIDC provider
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
-
       #----------------------------------------------
       #       Check if ECR Repo Exists
       #----------------------------------------------
-
       - name: Login to Amazon ECR
         id: login-ecr-home-repo
         uses: aws-actions/amazon-ecr-login@v2
@@ -57,11 +63,9 @@ jobs:
           echo "|----------------|---------|" >> $GITHUB_STEP_SUMMARY
           echo "| with-context-sagemaker-container | ${{ steps.vars.outputs.REPO_NAME }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
       #----------------------------------------------
       #       If ECR Repo Doesn't Exist Make It.
       #----------------------------------------------
-
       - name: Login to Amazon ECR
         if: steps.check-ecr.outputs.image-exists == 0
         id: login-ecr
@@ -100,7 +104,6 @@ jobs:
       #----------------------------------------------
       #       set environment variables and apps
       #----------------------------------------------
-
       - name: Establish Github App Bot
         id: github-app-token
         uses: mercari/github-app-token-generator@v1
@@ -112,11 +115,9 @@ jobs:
       - name: Set Environment Variables
         id: vars
         run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -127,11 +128,9 @@ jobs:
           # Use GitHub OIDC provider
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
-
       #----------------------------------------------
       #       Setup Poetry and Install Dependencies
       #----------------------------------------------
-
       - name: Install Poetry Action
         uses: snok/install-poetry@v1.3.4
         with:
@@ -149,24 +148,20 @@ jobs:
         run: |
           poetry env use ${{ matrix.python-version }}
           poetry install --no-interaction --only runtime
-
       #----------------------------------------------
       #       Setup CML Runner
       #----------------------------------------------
-
       - name: Setup CML Runner
         uses: iterative/setup-cml@v2
-
       #----------------------------------------------
       #       Run Sagemaker Training Script
       #----------------------------------------------
-
       - name: Configure and Launch Sagemaker Training Job
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{github.event.pull_request.head.sha}}
+          EVENT_SHA: ${{github.event.pull_request.base.sha}}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
