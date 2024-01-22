@@ -27,17 +27,17 @@ jobs:
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" --output json 2>&1)
           if [[ $ENDPOINT_DESCRIPTION == *"An error occurred (ValidationException) when calling the DescribeEndpoint operation: Could not find endpoint"* ]]; then
-            echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
-            echo "##Endpoint Check: :rocket:" >> "$GITHUB_STEP_SUMMARY
-            echo "| Endpoint | Status | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| -------- | ------ | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| ${EVENT_SHA:0:7} | Already in Service | " >> "$GITHUB_STEP_SUMMARY"
+            echo "IS_DEPLOYED=false" >> $GITHUB_OUTPUT
+            echo "##Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY"
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY"
+            echo "| ${EVENT_SHA:0:7} | Not Deployed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
-            echo "##Endpoint Check: :rocket: " >> "$GITHUB_STEP_SUMMARY
-            echo "| Endpoint | Status | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| -------- | ------ | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| ${EVENT_SHA:0:7} | Not Deployed | " >> "$GITHUB_STEP_SUMMARY"
+            echo "IS_DEPLOYED=true" >> $GITHUB_OUTPUT
+            echo "##Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
+            echo "| ${EVENT_SHA:0:7} | Already in Service |" >> $GITHUB_STEP_SUMMARY
           fi
     outputs:
       IS_DEPLOYED: ${{steps.aws-cli.outputs.IS_DEPLOYED}}
