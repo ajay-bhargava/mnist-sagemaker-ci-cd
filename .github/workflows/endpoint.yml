@@ -27,6 +27,7 @@ jobs:
           EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" --output json 2>&1)
+          echo "ENDPOINT_DESCRIPTION=$ENDPOINT_DESCRIPTION" >> "$GITHUB_OUTPUT"
           if [[ $ENDPOINT_DESCRIPTION == *"An error occurred (ValidationException) when calling the DescribeEndpoint operation: Could not find endpoint"* ]]; then
             echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
             echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
