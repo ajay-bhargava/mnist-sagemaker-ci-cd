@@ -57,15 +57,16 @@ jobs:
               - Dockerfile
 
       - name: Set output
-        if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
-        run: echo "There were files changed..."
+        env:
+          CHANGED_FILES: ${{steps.changed_files.outputs.train_any_changed}}
+        run: echo "There were files changed...${CHANGED_FILES}"
     outputs:
       files_changed: ${{steps.changed_files.outputs.train_any_changed}}
   push-to-ecr:
     name: Push Docker Image to ECR.
     needs: check_files_changed
     if: |
-      (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped')
+      needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
