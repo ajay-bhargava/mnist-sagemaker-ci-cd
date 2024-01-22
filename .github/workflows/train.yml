@@ -59,7 +59,9 @@ jobs:
       - name: Set output
         env:
           CHANGED_FILES: ${{steps.changed_files.outputs.train_any_changed}}
-        run: echo "There were files changed...${CHANGED_FILES}"
+          CHANGE_LIST: ${{ steps.changed_files.outputs.train_all_changed_files }}
+        run: |
+          echo "There were files changed...${CHANGED_FILES}, ${CHANGE_LIST}"
     outputs:
       files_changed: ${{steps.changed_files.outputs.train_any_changed}}
   push-to-ecr:
