@@ -28,7 +28,7 @@ jobs:
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}")
           echo $ENDPOINT_DESCRIPTION
-          if [[ $ENDPOINT_DESCRIPTION == *"An error occurred (ValidationException) when calling the DescribeEndpoint operation"* ]]; then
+          if [[ $ENDPOINT_DESCRIPTION == *(ValidationException)* ]]; then
             echo "Endpoint does not exist."
             echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
             echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
