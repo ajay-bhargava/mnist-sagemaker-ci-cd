@@ -2,8 +2,7 @@ name: Deploy Sagemaker Endpoint
 on:
   pull_request:
     branches:
-      - master
-      - test
+      - deploy-mnist-branch-for-serverless
     types: [assigned]
   workflow_dispatch:
 
