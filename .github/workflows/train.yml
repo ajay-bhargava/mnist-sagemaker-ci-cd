@@ -53,6 +53,7 @@ jobs:
               - src/mnist_sagemaker_ci_cd/lib/train.py
               - src/mnist_sagemaker_ci_cd/fit.py
               - src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
+              - src/mnist_sagemaker_ci_cd/lib/settings.py
               - Dockerfile
 
       - name: Set output
