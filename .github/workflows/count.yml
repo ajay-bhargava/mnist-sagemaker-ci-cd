@@ -23,9 +23,5 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Count Commits
-        id: count-commits
-        run: |
-          PR_URL=$(jq -r .pull_request.url $GITHUB_EVENT_PATH)
-          COMMITS_COUNT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" $PR_URL/commits | jq length)
-          echo "::set-output name=commit_count::$COMMITS_COUNT"
+      - name: "PR commits + 1"
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
