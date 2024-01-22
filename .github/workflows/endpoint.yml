@@ -19,7 +19,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Use GitHub OIDC provider
-          role-to-assume: "arn:aws:iam::220582896887:role/service-role/AmazonSageMaker-ExecutionRole-20221102T214473"
+          role-to-assume: "arn:aws:iam::220582896887:role/GithubActionsAWSRole"
           aws-region: us-east-1
 
       - name: Run AWS CLI
