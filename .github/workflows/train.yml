@@ -224,11 +224,10 @@ jobs:
           EVENT_SHA: ${{steps.master_branch_sha.outputs.base}}
         id: train
         run: |
-          poetry run python3 -c 'import os;print(os.environ)' 
-          # poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
-          # cat details.txt >> report.md
-          # cml comment create report.md
-          # echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
+          poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
+          cat details.txt >> report.md
+          cml comment create report.md
+          echo "### :rocket: Sagemaker Training Job Successfully Launched" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Link |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
