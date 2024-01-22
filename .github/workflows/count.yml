@@ -1,0 +1,31 @@
+name: Count Commits in PR
+
+on:
+  pull_request:
+    branches:
+      - test
+
+jobs:
+  count-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Establish Github App Bot
+        id: github-app-token
+        uses: mercari/github-app-token-generator@v1
+        with:
+          app-id: ${{secrets.GH_APP_ID}}
+          app-private-key: ${{secrets.GH_APP_PEM}}
+          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Count Commits
+        id: count-commits
+        run: |
+          PR_URL=$(jq -r .pull_request.url $GITHUB_EVENT_PATH)
+          COMMITS_COUNT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" $PR_URL/commits | jq length)
+          echo "::set-output name=commit_count::$COMMITS_COUNT"
