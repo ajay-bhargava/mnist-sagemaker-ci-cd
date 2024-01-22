@@ -37,9 +37,9 @@ class Settings(BaseSettings):
     ecr_repo_name: str = f"220582896887.dkr.ecr.us-east-1.amazonaws.com/with-context-sagemaker-container:{github_repo_name}"
     iam_role: str = os.environ.get(
         "SAGEMAKER_IAM_ROLE",
-        "arn:aws:iam::220582896887:role/service-role/AmazonSageMaker-ExecutionRole-20210629T120024",
+        "arn:aws:iam::220582896887:role/service-role/AmazonSageMaker-ExecutionRole-20221102T214473",
     )
-    cloudwatch_logs: str = rf"https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D${short_sha}"
+    cloudwatch_logs: str = rf"https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/\$252Faws\$252Fsagemaker\$252FTrainingJobs\$3FlogStreamNameFilter\$3D{short_sha}"
 
     # W&B Environment Variables
     wandb_api_key: str = os.environ.get("WANDB_API_KEY", "")

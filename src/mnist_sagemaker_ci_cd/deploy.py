@@ -58,7 +58,7 @@ message = (
     "    payload = f.read()\n"
     "    try:\n"
     "        response = sagemaker_runtime.invoke_endpoint(\n"
-    "            EndpointName=SETTINGS.short_sha,\n"
+    f"            EndpointName='{SETTINGS.short_sha}',\n"
     "            ContentType='application/octet-stream',\n"
     "            Accept='application/json',\n"
     "            Body=payload\n"
@@ -73,7 +73,7 @@ message = (
     "## Deleting the Endpoint\n\n"
     "To delete the endpoint, run the following command:\n\n"
     "```python\n"
-    "predictor.delete_endpoint(EndpointName=SETTINGS.short_sha)\n"
+    f"predictor.delete_endpoint(EndpointName='{SETTINGS.short_sha}')\n"
     "```\n\n"
 )
 
