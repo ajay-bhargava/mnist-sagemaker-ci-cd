@@ -64,7 +64,6 @@ jobs:
     needs:
       - check_files_changed
     if: |
-      always() &&
       (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped') &&
       github.event.assignee.login == 'ajay-bhargava'
     runs-on: ubuntu-latest

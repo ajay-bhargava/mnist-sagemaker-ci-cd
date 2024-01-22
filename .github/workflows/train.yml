@@ -10,7 +10,7 @@ jobs:
   #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    if: github.run_attempt >= 1
+    if: github.run_attempt > 1
     name: Check if files changed between PR commits.
     runs-on: ubuntu-latest
     permissions:
@@ -64,7 +64,6 @@ jobs:
     name: Push Docker Image to ECR.
     needs: check_files_changed
     if: |
-      always() &&
       (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
