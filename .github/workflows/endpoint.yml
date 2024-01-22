@@ -8,12 +8,12 @@ on:
 
 jobs:
   #----------------------------------------------------------------
-  #   Check if there are files changed only after the first run
+  #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    name: Check if files changed after first run.
+    name: Diff PR commit.
+    if: github.event.pull_request.commits > 1
     runs-on: ubuntu-latest
-    if: ${{ github.run_number > 2 }}
     permissions:
       id-token: write
       contents: write
@@ -33,7 +33,7 @@ jobs:
         id: vars
         run: |
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "This is run number ${{ github.run_number }}"
+          echo "This is run attempt ${{ github.run_attempt }}"
       #----------------------------------------------
       #          check-out repo latest commit
       #----------------------------------------------
@@ -60,10 +60,10 @@ jobs:
       files_changed: ${{steps.changed_files.outputs.deploy_any_changed}}
 
   deploy_endpoint:
+    name: Deploy Sagemaker Endpoint.
     needs:
       - check_files_changed
     if: |
-      always() &&
       (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped') &&
       github.event.assignee.login == 'ajay-bhargava'
     runs-on: ubuntu-latest
@@ -87,12 +87,21 @@ jobs:
 
       - name: Set Environment Variables
         id: vars
-        run: echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Base SHA
+        id: master_base_sha
+        uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -133,12 +142,13 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
           cat details.txt >> report.md
           cml comment create report.md
+          echo "Event SHA: ${EVENT_SHA:0:7}" >> $GITHUB_STEP_SUMMARY
       #----------------------------------------------
       #       Future State: Run A/B Test
       #       Code on Endpoint(Could be part of

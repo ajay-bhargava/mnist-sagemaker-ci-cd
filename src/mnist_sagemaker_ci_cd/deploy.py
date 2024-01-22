@@ -16,7 +16,7 @@ SETTINGS = Settings()
 
 # Get the model path from the training job
 model_path = Estimator.attach(
-    training_job_name=SETTINGS.github_sha[:7], sagemaker_session=SESSION
+    training_job_name=SETTINGS.short_sha, sagemaker_session=SESSION
 ).model_data
 
 # Define the Model
@@ -28,12 +28,12 @@ model = PyTorchModel(
     framework_version="2.1",
     py_version="py310",
     entry_point="inference.py",
-    name=SETTINGS.github_sha[:7],
+    name=SETTINGS.short_sha,
     code_location=SETTINGS.output_s3_uri,
 )
 
 # Deploy the Model
-endpoint_name = f"{SETTINGS.github_sha[:7]}"
+endpoint_name = f"{SETTINGS.short_sha}"
 predictor = model.deploy(
     initial_instance_count=1,
     instance_type="ml.m5.large",
@@ -58,7 +58,7 @@ message = (
     "    payload = f.read()\n"
     "    try:\n"
     "        response = sagemaker_runtime.invoke_endpoint(\n"
-    "            EndpointName=SETTINGS.github_sha[:7],\n"
+    "            EndpointName=SETTINGS.short_sha,\n"
     "            ContentType='application/octet-stream',\n"
     "            Accept='application/json',\n"
     "            Body=payload\n"
@@ -73,7 +73,7 @@ message = (
     "## Deleting the Endpoint\n\n"
     "To delete the endpoint, run the following command:\n\n"
     "```python\n"
-    "predictor.delete_endpoint(EndpointName=SETTINGS.github_sha[:7])\n"
+    "predictor.delete_endpoint(EndpointName=SETTINGS.short_sha)\n"
     "```\n\n"
 )
 

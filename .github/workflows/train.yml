@@ -7,12 +7,12 @@ on:
 
 jobs:
   #----------------------------------------------------------------
-  #   Check if there are files changed only after the first run
+  #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    name: Check if files changed after first run.
+    if: github.event.pull_request.commits > 1
+    name: Diff PR Commits.
     runs-on: ubuntu-latest
-    if: ${{ github.run_number > 2 }}
     permissions:
       id-token: write
       contents: write
@@ -32,7 +32,7 @@ jobs:
         id: vars
         run: |
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "This is run number ${{ github.run_number }}"
+          echo "This is run attempt ${{ github.run_attempt }}"
       #----------------------------------------------
       #          check-out repo latest commit
       #----------------------------------------------
@@ -49,24 +49,26 @@ jobs:
         with:
           files_yaml: |
             train: 
-              - "data.dvc"
-              - "src/mnist_sagemaker_ci_cd/lib/train.py"
-              - "src/mnist_sagemaker_ci_cd/lib/settings.py"
-              - "src/mnist_sagemaker_ci_cd/fit.py"
-              - "src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"
-              - "Dockerfile"
-              - ".github/workflows/train.yml"
-              
+              - data.dvc
+              - src/mnist_sagemaker_ci_cd/lib/train.py
+              - src/mnist_sagemaker_ci_cd/fit.py
+              - src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
+              - src/mnist_sagemaker_ci_cd/lib/settings.py
+              - Dockerfile
+
       - name: Set output
-        if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
-        run: echo "There were files changed..."
+        env:
+          CHANGED_FILES: ${{steps.changed_files.outputs.train_any_changed}}
+          CHANGE_LIST: ${{ steps.changed_files.outputs.train_all_changed_files }}
+        run: |
+          echo "There were files changed...${CHANGED_FILES}, ${CHANGE_LIST}"
     outputs:
       files_changed: ${{steps.changed_files.outputs.train_any_changed}}
   push-to-ecr:
+    name: Push Docker Image to ECR.
     needs: check_files_changed
     if: |
-      always() &&
-      (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped')
+      needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -144,6 +146,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
   train-on-sagemaker:
+    name: Train Sagemaker Model.
     needs: push-to-ecr
     runs-on: ubuntu-latest
     permissions:
@@ -172,6 +175,14 @@ jobs:
       #----------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Base SHA
+        id: master_branch_sha
+        uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -213,7 +224,7 @@ jobs:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           WANDB_API_KEY: ${{secrets.WANDB_API_KEY}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{github.event.pull_request.base.sha}}
+          EVENT_SHA: ${{steps.master_branch_sha.outputs.base}}
         id: train
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/fit.py
