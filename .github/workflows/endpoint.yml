@@ -25,7 +25,7 @@ jobs:
         env:
           EVENT_SHA: "bdc5ae6dd849743656c270e938e4fc56fd0e1863"
         run: |
-          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name bdc5ae6" 2>/dev/null)
+          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "bdc5ae6" 2>/dev/null)
           echo "ENDPOINT_DESCRIPTION=$ENDPOINT_DESCRIPTION"
           if [[ -n $ENDPOINT_DESCRIPTION && $ENDPOINT_DESCRIPTION == *"\"EndpointStatus\": \"InService\""* ]]; then
             echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
