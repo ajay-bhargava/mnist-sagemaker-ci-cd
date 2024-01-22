@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - deployed-mnist-branch-for-serverless
-    types: [assigned]
   workflow_dispatch:
 
 jobs:
@@ -12,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
     steps:
       - name: Configure AWS credentials
         id: aws-credentials
@@ -27,7 +25,8 @@ jobs:
         env:
           EVENT_SHA: "bdc5ae6dd849743656c270e938e4fc56fd0e1863"
         run: |
-          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" 2>/dev/null)
+          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name bdc5ae6" 2>/dev/null)
+          echo "ENDPOINT_DESCRIPTION=$ENDPOINT_DESCRIPTION"
           if [[ -n $ENDPOINT_DESCRIPTION && $ENDPOINT_DESCRIPTION == *"\"EndpointStatus\": \"InService\""* ]]; then
             echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
             echo "##Endpoint Check: :rocket:" >> "$GITHUB_STEP_SUMMARY
@@ -49,7 +48,6 @@ jobs:
     needs:
       - check_endpoint
     if: |
-      github.event.assignee.login == 'ajay-bhargava' &&
       needs.check_endpoint.outputs.IS_DEPLOYED == 'false'
     runs-on: ubuntu-latest
     permissions:
