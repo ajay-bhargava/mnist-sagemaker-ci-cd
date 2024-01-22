@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - master
-    types: [assigned]
+      - test
   workflow_dispatch:
 
 jobs:
@@ -24,17 +24,17 @@ jobs:
       - name: Run AWS CLI
         id: aws-cli
         env:
-          EVENT_SHA: ${{github.event.pull_request.head.sha}}
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" --output json 2>&1)
           if [[ $ENDPOINT_DESCRIPTION == *"An error occurred (ValidationException) when calling the DescribeEndpoint operation: Could not find endpoint"* ]]; then
-            echo "IS_DEPLOYED=false" >> $GITHUB_OUTPUT
+            echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
             echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
-            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY"
-            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY"
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
             echo "| ${EVENT_SHA:0:7} | Not Deployed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "IS_DEPLOYED=true" >> $GITHUB_OUTPUT
+            echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
             echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
             echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
             echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
@@ -48,7 +48,6 @@ jobs:
     needs:
       - check_endpoint
     if: |
-      github.event.assignee.login == 'ajay-bhargava' &&
       needs.check_endpoint.outputs.IS_DEPLOYED == 'false'
     runs-on: ubuntu-latest
     permissions:
@@ -114,7 +113,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{github.event.pull_request.head.sha}}
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
