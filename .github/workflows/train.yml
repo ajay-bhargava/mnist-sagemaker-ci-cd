@@ -53,6 +53,7 @@ jobs:
               - src/mnist_sagemaker_ci_cd/lib/train.py
               - src/mnist_sagemaker_ci_cd/fit.py
               - src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt
+              - src/mnist_sagemaker_ci_cd/lib/settings.py
               - Dockerfile
 
       - name: Set output
@@ -64,7 +65,6 @@ jobs:
     name: Push Docker Image to ECR.
     needs: check_files_changed
     if: |
-      always() &&
       (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
