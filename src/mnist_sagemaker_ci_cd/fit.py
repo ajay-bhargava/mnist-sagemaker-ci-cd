@@ -26,7 +26,7 @@ wandb_run_url = wandb.run.get_url()  # type: ignore
 
 # Hyperparameters
 hyperparameters = {
-    "epochs": 5,
+    "epochs": 1,
     "backend": "gloo",
 }
 
