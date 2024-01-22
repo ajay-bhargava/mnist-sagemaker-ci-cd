@@ -56,7 +56,7 @@ estimator = Estimator(
     dependencies=["src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"],
 )
 
-# estimator.fit(job_name=f"{settings.short_sha}", wait=False, logs="Training")
+estimator.fit(job_name=f"{settings.short_sha}", wait=False, logs="Training")
 wandb.run.finish(quiet=True)  # type: ignore
 
 # Create a CML Runner Comment
