@@ -10,8 +10,8 @@ jobs:
   #   Check if there are files changed between PR commits
   #----------------------------------------------------------------
   check_files_changed:
-    if: github.run_attempt >= 1
-    name: Check if files changed between PR commits.
+    if: github.event.pull_request.commits > 1
+    name: Diff PR Commits.
     runs-on: ubuntu-latest
     permissions:
       id-token: write
