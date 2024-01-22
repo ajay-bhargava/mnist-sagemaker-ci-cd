@@ -17,7 +17,7 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 #     id=run_id,
 #     project=settings.github_repo_name,
 #     entity="bhargava-ajay",
-#     name=settings.github_sha[:7],
+#     name=settings.short_sha,
 #     tags=["debugging", "wandb", "sagemaker"],
 # )
 # wandb_run_url = wandb.run.get_url()  # type: ignore
@@ -33,8 +33,8 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 #     "WANDB_RUN_ID": run_id,
 #     "WANDB_API_KEY": settings.wandb_api_key,
 #     "WANDB_PROJECT": settings.github_repo_name,
-#     "WANDB_RUN_GROUP": settings.github_sha[:7],
-#     "GITHUB_SHA": settings.github_sha[:7],
+#     "WANDB_RUN_GROUP": settings.short_sha,
+#     "GITHUB_SHA": settings.short_sha,
 # }
 
 # # Define Estimator
@@ -54,7 +54,7 @@ TRAINING_INSTANCE = "ml.g4dn.xlarge"
 #     dependencies=["src/mnist_sagemaker_ci_cd/deps/fit/requirements.txt"],
 # )
 
-# estimator.fit(job_name=f"{settings.github_sha[:7]}", wait=False, logs="Training")
+# estimator.fit(job_name=f"{settings.short_sha}", wait=False, logs="Training")
 # wandb.run.finish(quiet=True)  # type: ignore
 
 # Create a CML Runner Comment
@@ -63,7 +63,7 @@ message = (
     f"You can view the details of this run in the table by clicking on the link below.\n\n"
     f"| Item | Value |\n"
     f"| --- | --- |\n"
-    f"| Job Name | {settings.github_sha[:7]} |\n"
+    f"| Job Name | {settings.short_sha} |\n"
     f"| Training Instance | {TRAINING_INSTANCE} |\n"
     # f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n"
     f"| S3 Artifacts | [Here]({settings.s3_http_url}) |\n"
