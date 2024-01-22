@@ -12,16 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
     steps:
-      - name: Establish Github App Bot
-        id: github-app-token
-        uses: mercari/github-app-token-generator@v1
-        with:
-          app-id: ${{secrets.GH_APP_ID}}
-          app-private-key: ${{secrets.GH_APP_PEM}}
-          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
-
       - name: Configure AWS credentials
         id: aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -35,19 +26,19 @@ jobs:
         env:
           EVENT_SHA: ${{github.event.pull_request.head.sha}}
         run: |
-          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" 2>/dev/null)
-          if [[ -n $ENDPOINT_DESCRIPTION && $ENDPOINT_DESCRIPTION == *"\"EndpointStatus\": \"InService\""* ]]; then
-            echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
-            echo "##Endpoint Check: :rocket:" >> "$GITHUB_STEP_SUMMARY
-            echo "| Endpoint | Status | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| -------- | ------ | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| ${EVENT_SHA:0:7} | Already in Service | " >> "$GITHUB_STEP_SUMMARY"
+          ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" --output json 2>&1)
+          if [[ $ENDPOINT_DESCRIPTION == *"An error occurred (ValidationException) when calling the DescribeEndpoint operation: Could not find endpoint"* ]]; then
+            echo "IS_DEPLOYED=false" >> $GITHUB_OUTPUT
+            echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY"
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY"
+            echo "| ${EVENT_SHA:0:7} | Not Deployed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
-            echo "##Endpoint Check: :rocket: " >> "$GITHUB_STEP_SUMMARY
-            echo "| Endpoint | Status | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| -------- | ------ | " >> "$GITHUB_STEP_SUMMARY"
-            echo "| ${EVENT_SHA:0:7} | Not Deployed | " >> "$GITHUB_STEP_SUMMARY"
+            echo "IS_DEPLOYED=true" >> $GITHUB_OUTPUT
+            echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
+            echo "| ${EVENT_SHA:0:7} | Already in Service |" >> $GITHUB_STEP_SUMMARY
           fi
     outputs:
       IS_DEPLOYED: ${{steps.aws-cli.outputs.IS_DEPLOYED}}
@@ -78,11 +69,6 @@ jobs:
           app-private-key: ${{secrets.GH_APP_PEM}}
           app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
 
-      - name: Set Environment Variables
-        id: vars
-        run: |
-          echo "SM_TITLE=$(REF_NAME)/$(HEAD_SHA:0:7)" >> "$GITHUB_OUTPUT"
-          echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
@@ -128,7 +114,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{steps.vars.outputs.SM_TITLE}}
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
