@@ -12,7 +12,7 @@ jobs:
   #----------------------------------------------------------------
   check_files_changed:
     name: Diff PR commit.
-    if: github.run_attempt > 1
+    if: github.event.pull_request.commits > 1
     runs-on: ubuntu-latest
     permissions:
       id-token: write
