@@ -22,12 +22,6 @@ jobs:
           app-private-key: ${{secrets.GH_APP_PEM}}
           app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
 
-      - name: Get Base SHA
-        id: master_base_sha
-        uses: nrwl/nx-set-shas@v4
-        with:
-          main-branch-name: master
-
       - name: Configure AWS credentials
         id: aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -39,7 +33,7 @@ jobs:
       - name: Run AWS CLI
         id: aws-cli
         env:
-          EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker describe-endpoint --endpoint-name "${EVENT_SHA:0:7}" 2>/dev/null)
           if [[ -n $ENDPOINT_DESCRIPTION && $ENDPOINT_DESCRIPTION == *"\"EndpointStatus\": \"InService\""* ]]; then
