@@ -87,20 +87,13 @@ jobs:
       - name: Set Environment Variables
         id: vars
         run: |
+          echo "SM_TITLE=$(REF_NAME)/$(HEAD_SHA:0:7)" >> "$GITHUB_OUTPUT"
           echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get Base SHA
-        id: master_base_sha
-        uses: nrwl/nx-set-shas@v4
-        with:
-          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -141,7 +134,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
+          EVENT_SHA: ${{steps.vars.outputs.SM_TITLE}}
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
