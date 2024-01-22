@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - master
-      - test
+      - deployed-mnist-branch-for-serverless
   workflow_dispatch:
 
 jobs:
