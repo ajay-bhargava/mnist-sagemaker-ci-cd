@@ -51,8 +51,6 @@ message = (
     "```python\n"
     "import json\n"
     "import boto3\n"
-    "from src.mnist_sagemaker_ci_cd.lib.settings import Settings\n\n"
-    "SETTINGS = Settings()\n"
     "sagemaker_runtime = boto3.client('sagemaker-runtime')\n"
     "with open('../data/4.png', 'rb') as f:\n"
     "    payload = f.read()\n"
