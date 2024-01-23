@@ -26,8 +26,8 @@ jobs:
         env:
           EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         run: |
-          ENDPOINT_DESCRIPTION=$(aws sagemaker list-endpoints --name-contains "${EVENT_SHA:0:7}" --query "Endpoints[0].EndpointName" --output text)
-          if [ -z "$ENDPOINT_DESCRIPTION" ] ; then
+          ENDPOINT_DESCRIPTION=$(aws sagemaker list-endpoints --name-contains "${EVENT_SHA:0:7}" --query "Endpoints[0].EndpointName")
+          if [ "$ENDPOINT_DESCRIPTION" = null ] ; then
             echo "Endpoint does not exist."
             echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
             echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
