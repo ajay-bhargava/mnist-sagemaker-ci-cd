@@ -26,7 +26,7 @@ wandb_run_url = wandb.run.get_url()  # type: ignore
 
 # Hyperparameters
 hyperparameters = {
-    "epochs": 5,
+    "epochs": 1,
     "backend": "gloo",
 }
 
@@ -70,6 +70,7 @@ message = (
     f"| W&B :sparkles: Job URL | [Here]({wandb_run_url}) |\n"
     f"| S3 Artifacts | [Here]({settings.s3_http_url}) |\n"
     f"| Training Logs | [Here]({settings.cloudwatch_logs}) |\n"
+    "If this training job was not to your liking, please close this PR and start another.\n\n"
 )
 
 # Convert the tuple to a string

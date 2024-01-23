@@ -3,68 +3,54 @@ on:
   pull_request:
     branches:
       - master
-    types: [assigned]
+    types: [assigned, ready_for_review]
   workflow_dispatch:
 
 jobs:
-  #----------------------------------------------------------------
-  #   Check if there are files changed between PR commits
-  #----------------------------------------------------------------
-  check_files_changed:
-    name: Diff PR commit.
-    if: github.event.pull_request.commits > 1
+  check_endpoint:
+    name: Check if Endpoint Exists.
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
     steps:
-      #----------------------------------------------
-      #       set environment variables and apps
-      #----------------------------------------------
-      - name: Establish Github App Bot
-        id: github-app-token
-        uses: mercari/github-app-token-generator@v1
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          app-id: ${{secrets.GH_APP_ID}}
-          app-private-key: ${{secrets.GH_APP_PEM}}
-          app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
+          # Use GitHub OIDC provider
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
 
-      - name: Set Environment Variables
-        id: vars
+      - name: Run AWS CLI
+        id: aws-cli
+        env:
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         run: |
-          echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
-          echo "This is run attempt ${{ github.run_attempt }}"
-      #----------------------------------------------
-      #          check-out repo latest commit
-      #----------------------------------------------
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      #----------------------------------------------
-      #         setup changed-files@v42 action
-      #----------------------------------------------
-      - name: Check if files changed
-        id: changed_files
-        uses: tj-actions/changed-files@v42
-        with:
-          files_yaml: |
-            deploy: 
-              - src/mnist_sagemaker_ci_cd/deploy.py
-              - src/mnist_sagemaker_ci_cd/lib/inference.py
-
-      - name: Set output
-        if: ${{steps.changed_files.outputs.deploy_any_changed == 'true'}}
-        run: echo "There were files changed..."
+          ENDPOINT_DESCRIPTION=$(aws sagemaker list-endpoints --name-contains "${EVENT_SHA:0:7}" --query "Endpoints[0].EndpointName")
+          if [ "$ENDPOINT_DESCRIPTION" = null ] ; then
+            echo "Endpoint does not exist."
+            echo "IS_DEPLOYED=false" >> "$GITHUB_OUTPUT"
+            echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
+            echo "| ${EVENT_SHA:0:7} | Not Deployed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Endpoint exists."
+            echo "IS_DEPLOYED=true" >> "$GITHUB_OUTPUT"
+            echo "Endpoint Check: :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "| Endpoint | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| -------- | ------ |" >> $GITHUB_STEP_SUMMARY
+            echo "| ${EVENT_SHA:0:7} | Already in Service |" >> $GITHUB_STEP_SUMMARY
+          fi
     outputs:
-      files_changed: ${{steps.changed_files.outputs.deploy_any_changed}}
+      IS_DEPLOYED: ${{steps.aws-cli.outputs.IS_DEPLOYED}}
 
   deploy_endpoint:
     name: Deploy Sagemaker Endpoint.
     needs:
-      - check_files_changed
+      - check_endpoint
     if: |
-      (needs.check_files_changed.outputs.files_changed == 'true' || needs.check_files_changed.result == 'skipped') &&
+      needs.check_endpoint.outputs.IS_DEPLOYED == 'false' &&
       github.event.assignee.login == 'ajay-bhargava'
     runs-on: ubuntu-latest
     permissions:
@@ -85,23 +71,11 @@ jobs:
           app-private-key: ${{secrets.GH_APP_PEM}}
           app-installation-id: ${{secrets.GH_APP_INSTALLATION_ID}}
 
-      - name: Set Environment Variables
-        id: vars
-        run: |
-          echo "REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F/ '{print $2}')" >> "$GITHUB_OUTPUT"
       #----------------------------------------------
       #       check-out repo and login to AWS
       #----------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get Base SHA
-        id: master_base_sha
-        uses: nrwl/nx-set-shas@v4
-        with:
-          main-branch-name: master
 
       - name: Configure AWS credentials
         id: aws-credentials
@@ -142,13 +116,12 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: ${{steps.master_base_sha.outputs.base}}
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
           cat details.txt >> report.md
           cml comment create report.md
-          echo "Event SHA: ${EVENT_SHA:0:7}" >> $GITHUB_STEP_SUMMARY
       #----------------------------------------------
       #       Future State: Run A/B Test
       #       Code on Endpoint(Could be part of
