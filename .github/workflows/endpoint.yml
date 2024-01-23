@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - master
-      - deployed-mnist-branch-for-serverless
+    types: [assigned, ready_for_review]
   workflow_dispatch:
 
 jobs:
@@ -50,7 +50,8 @@ jobs:
     needs:
       - check_endpoint
     if: |
-      needs.check_endpoint.outputs.IS_DEPLOYED == 'false'
+      needs.check_endpoint.outputs.IS_DEPLOYED == 'false' &&
+      github.event.assignee.login == 'ajay-bhargava'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
