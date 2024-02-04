@@ -5,10 +5,10 @@
 # uses to deploy your code to your provider of choice
 
 # The `service` block is the name of the service
-service: mnist-sagemaker-ci-cd
+service: mnist-inference
 frameworkVersion: "3"
 org: withcontext
-app: MNIST
+app: mnist
 
 # The `provider` block defines where your service will be deployed
 provider:
@@ -27,8 +27,6 @@ provider:
 
 custom:
   pythonRequirements:
-    # aws lambda has an after-extraction size limit - with native dependencies we pass the limit quickly
-    # zip the requirements and extract them on the fly (see handler.py)
     zip: true
     slim: true
     dockerizePip: true
