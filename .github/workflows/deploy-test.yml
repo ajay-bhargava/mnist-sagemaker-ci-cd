@@ -16,15 +16,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       #----------------------------------------------
-      #       Setup Node, Serverless, and AWS
+      #       Setup Node and Serverless
       #----------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: |
+            ./src/serverless/package.json
+            ./src/serverless/package-lock.json
 
       - run: npm ci
-        working-directory: src/serverless
+        working-directory: ./src/serverless
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
