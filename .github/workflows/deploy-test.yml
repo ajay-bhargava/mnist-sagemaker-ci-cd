@@ -41,9 +41,9 @@ jobs:
       - name: Deploy SLS Endpoint
         uses: serverless/github-action@v3.2.0
         env:
-          DEPLOY_SHA: "05c076329917ea8566c828708db693fd5a125932"
+          DEPLOY_SHA: "05c0763"
         with:
-          args: -c "cd src/serverless/ && sls deploy --region us-east-1 --verbose"
+          args: -c "cd ./src/serverless/ && sls deploy --region us-east-1 --config serverless.yml --stage prod --org withcontext --verbose"
 
       - name: Report Success
         run: |
