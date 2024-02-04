@@ -8,7 +8,7 @@
 service: mnist-sagemaker-ci-cd
 frameworkVersion: "3"
 org: withcontext
-app: mnist-endpoint
+app: MNIST
 
 # The `provider` block defines where your service will be deployed
 provider:

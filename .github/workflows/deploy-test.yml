@@ -43,7 +43,8 @@ jobs:
         env:
           DEPLOY_SHA: "05c0763"
         with:
-          args: -c "cd ./src/serverless/ && sls deploy --region us-east-1 --config serverless.yml --stage prod --org withcontext --verbose"
+          args: -c "cd ./src/serverless/ && serverless deploy"
+          entrypoint: /bin/sh
 
       - name: Report Success
         run: |
