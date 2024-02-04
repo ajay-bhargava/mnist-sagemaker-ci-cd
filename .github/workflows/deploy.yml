@@ -29,19 +29,23 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: src/serverless/package-lock.json
+          cache-dependency-path: |
+            ./src/serverless/package.json
+            ./src/serverless/package-lock.json
+
       - run: npm ci
+        working-directory: ./src/serverless
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
       #----------------------------------------------
       #       Deploy Serverless
       #----------------------------------------------
-      - name: Deploy SLS Endpoint
-        uses: serverless/github-action@v3
+      - name: Serverless
+        uses: serverless/github-action@v3.2.0
         env:
           DEPLOY_SHA: "05c076329917ea8566c828708db693fd5a125932"
         with:
