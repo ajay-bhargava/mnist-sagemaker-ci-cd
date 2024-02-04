@@ -23,9 +23,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: src/serverless/package-lock.json
+          cache-dependency-path: |
+            src/serverless/package.json
+            src/serverless/package-lock.json
       - run: npm ci
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
