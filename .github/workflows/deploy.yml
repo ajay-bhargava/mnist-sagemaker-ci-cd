@@ -9,17 +9,67 @@ on:
 
 jobs:
   deploy_endpoint:
-    # this job will only run if the PR has been merged
+    name: Deploy Endpoint and Lambda to Public API Gateway
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    permissions:
+      id-token: write
+      contents: write
     steps:
-      - run: |
-          echo PR #${{ github.event.number }} has been merged
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      #----------------------------------------------
+      #       Setup Node and Serverless
+      #----------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: src/serverless/package-lock.json
+      - run: npm ci
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+      #----------------------------------------------
+      #       Deploy Serverless
+      #----------------------------------------------
+      - name: Deploy SLS Endpoint
+        uses: serverless/github-action@v3
+        env:
+          DEPLOY_SHA: "05c076329917ea8566c828708db693fd5a125932"
+        with:
+          args: -c "cd src/serverless/ && sls deploy --region us-east-1 --verbose"
+
+      - name: Report Success
+        run: |
+          echo "Endpoint has been deployed successfully." >> "$GITHUB_OUTPUT"
 
   destroy_endpoint:
     # this job will only run if the PR has been closed without being merged
     if: github.event.pull_request.merged == false
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
-      - run: |
-          echo PR #${{ github.event.number }} has been closed without being merged
+      - name: Configure AWS Credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Use Github OIDC provider to assume the role
+          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      - name: Destroy Sagemaker Endpoint
+        id: destroy_endpoint
+        env:
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
+        run: |
+          aws sagemaker delete-endpoint --endpoint-name ${EVENT_SHA:0:7}
+          echo "Endpoint Destroyed: ${EVENT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
