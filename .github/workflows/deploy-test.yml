@@ -14,11 +14,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
         # Change this so that only ./src/serverless is checked out
         with:
           sparse-checkout: |
-            src/serverless/
+            ./src/serverless/
+          sparse-checkout-cone-mode: false
       #----------------------------------------------
       #       Setup Platform
       #----------------------------------------------
