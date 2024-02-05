@@ -27,6 +27,8 @@ jobs:
         with:
           python-version: "3.9"
 
+      - run: ls -alht
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
