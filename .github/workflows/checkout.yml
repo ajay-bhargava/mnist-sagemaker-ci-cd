@@ -1,0 +1,23 @@
+name: Deploy SLS
+on:
+  workflow_dispatch:
+
+jobs:
+  checkout_repo:
+    name: Deploy Endpoint and Lambda to Public API Gateway
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        # Change this so that only ./src/serverless is checked out
+        with:
+          sparse-checkout: "src/serverless/"
+          sparse-checkout-cone-mode: false
+
+      - run: ls -alht
