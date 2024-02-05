@@ -28,7 +28,6 @@ provider:
 custom:
   pythonRequirements:
     zip: true
-    slim: true
 
 # The `functions` block defines what code to deploy
 functions:

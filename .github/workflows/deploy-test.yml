@@ -36,6 +36,13 @@ jobs:
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
       #----------------------------------------------
+      #       Setup Python
+      #----------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      #----------------------------------------------
       #       Deploy Serverless
       #----------------------------------------------
       - name: Deploy SLS Endpoint
