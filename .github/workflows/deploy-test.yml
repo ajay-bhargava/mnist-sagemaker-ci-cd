@@ -16,8 +16,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       #----------------------------------------------
-      #       Setup Node and Serverless
+      #       Setup Platform
       #----------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -36,13 +41,6 @@ jobs:
           role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
       #----------------------------------------------
-      #       Setup Python
-      #----------------------------------------------
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      #----------------------------------------------
       #       Deploy Serverless
       #----------------------------------------------
       - name: Deploy SLS Endpoint
@@ -52,7 +50,7 @@ jobs:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         with:
           args: -c "cd ./src/serverless/ && serverless deploy --verbose"
-          entrypoint: /bin/bash
+          entrypoint: /bin/sh
 
       - name: Report Success
         run: |
