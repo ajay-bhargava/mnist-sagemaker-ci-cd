@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - run: npm install -g serverless
+        working-directory: ./src/serverless
+
       - run: npm ci
         working-directory: ./src/serverless
 
@@ -47,13 +50,12 @@ jobs:
       #       Deploy Serverless
       #----------------------------------------------
       - name: Deploy SLS Endpoint
-        uses: serverless/github-action@v3
         env:
           DEPLOY_SHA: "05c0763"
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        with:
-          args: -c "cd ./src/serverless/ && serverless deploy --verbose"
-          entrypoint: /bin/sh
+        run: |
+          serverless deploy --stage dev --region us-east-1
+        working-directory: ./src/serverless 
 
       - name: Report Success
         run: |
