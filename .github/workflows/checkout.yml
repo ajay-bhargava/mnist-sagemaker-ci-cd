@@ -1,4 +1,4 @@
-name: Deploy SLS
+name: Checkout Repository
 on:
   workflow_dispatch:
 
