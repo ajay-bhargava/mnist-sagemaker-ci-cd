@@ -52,7 +52,7 @@ jobs:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         with:
           args: -c "cd ./src/serverless/ && serverless deploy --verbose"
-          entrypoint: /bin/sh
+          entrypoint: /bin/bash
 
       - name: Report Success
         run: |
