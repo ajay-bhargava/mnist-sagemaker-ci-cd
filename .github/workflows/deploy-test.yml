@@ -19,7 +19,7 @@ jobs:
         with:
           sparse-checkout: |
             ./src/serverless/
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: true
       #----------------------------------------------
       #       Setup Platform
       #----------------------------------------------
