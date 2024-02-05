@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy_endpoint:
+  deploy_endpoint_to_lambda:
     name: Deploy Endpoint and Lambda to Public API Gateway
     runs-on: ubuntu-latest
     strategy:
@@ -27,25 +27,11 @@ jobs:
         with:
           python-version: "3.9"
 
-      - run: ls -alht
-        working-directory: ./src/serverless
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: npm install -g serverless
-        working-directory: ./src/serverless
-
-      - run: npm ci
-        working-directory: ./src/serverless
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
-          aws-region: us-east-1
       #----------------------------------------------
       #       Deploy Serverless
       #----------------------------------------------
@@ -54,6 +40,8 @@ jobs:
           DEPLOY_SHA: "05c0763"
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         run: |
+          npm install -g serverless
+          npm ci
           serverless deploy --verbose
         working-directory: ./src/serverless 
 
