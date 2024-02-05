@@ -10,7 +10,6 @@ on:
 jobs:
   deploy_endpoint:
     name: Deploy Endpoint and Lambda to Public API Gateway
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,18 +19,26 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
+        # Change this so that only ./src/serverless is checked out
+        with:
+          sparse-checkout: "src/serverless/"
+          sparse-checkout-cone-mode: false
       #----------------------------------------------
-      #       Setup Node and Serverless
+      #       Setup Platform
       #----------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: |
-            ./src/serverless/package.json
-            ./src/serverless/package-lock.json
+
+      - run: npm install -g serverless
+        working-directory: ./src/serverless
 
       - run: npm ci
         working-directory: ./src/serverless
@@ -44,12 +51,13 @@ jobs:
       #----------------------------------------------
       #       Deploy Serverless
       #----------------------------------------------
-      - name: Serverless
-        uses: serverless/github-action@v3.2.0
+      - name: Deploy SLS Endpoint
         env:
-          DEPLOY_SHA: "05c076329917ea8566c828708db693fd5a125932"
-        with:
-          args: -c "cd src/serverless/ && sls deploy --region us-east-1 --verbose"
+          DEPLOY_SHA: "05c0763"
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        run: |
+          serverless deploy --stage dev --region us-east-1 --verbose
+        working-directory: ./src/serverless 
 
       - name: Report Success
         run: |

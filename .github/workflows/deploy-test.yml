@@ -54,7 +54,7 @@ jobs:
           DEPLOY_SHA: "05c0763"
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         run: |
-          serverless deploy --stage dev --region us-east-1
+          serverless deploy --stage dev --region us-east-1 --verbose
         working-directory: ./src/serverless 
 
       - name: Report Success
