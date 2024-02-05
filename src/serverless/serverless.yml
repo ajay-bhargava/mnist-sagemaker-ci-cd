@@ -29,9 +29,6 @@ custom:
   pythonRequirements:
     zip: true
     slim: true
-    dockerizePip: true
-    useDownloadCache: false
-    useStaticCache: false
 
 # The `functions` block defines what code to deploy
 functions:
