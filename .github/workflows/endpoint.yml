@@ -1,4 +1,4 @@
-name: Deploy Sagemaker Endpoint
+name: Create Sagemaker Endpoint
 on:
   pull_request:
     branches:
@@ -46,7 +46,7 @@ jobs:
       IS_DEPLOYED: ${{steps.aws-cli.outputs.IS_DEPLOYED}}
 
   deploy_endpoint:
-    name: Deploy Sagemaker Endpoint.
+    name: Create Sagemaker Endpoint.
     needs:
       - check_endpoint
     if: |
