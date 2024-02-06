@@ -50,10 +50,11 @@ jobs:
       - name: Deploy SLS Endpoint
         id: deploy-sls
         env:
-          DEPLOY_SHA: "05c0763"
+          DEPLOY_VALUE: ${{github.event.pull_request.head.sha}}
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         run: |
-          rm .env
+          touch -c .env
+          echo "DEPLOY_SHA=${DEPLOY_VALUE:0:7}" >> .env
           npm install -g serverless
           npm ci
           serverless deploy --verbose
@@ -78,7 +79,7 @@ jobs:
 
       - name: Write Deployment SHA to .env file
         env: 
-          DEPLOY_VALUE: "05c0763"
+          DEPLOY_VALUE: ${{github.event.pull_request.head.sha}}
         run: |
           touch -c .env
           echo "DEPLOY_SHA=${DEPLOY_VALUE:0:7}" >> .env
@@ -105,13 +106,13 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Use Github OIDC provider to assume the role
-          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
 
       - name: Destroy Sagemaker Endpoint
         id: destroy_endpoint
         env:
-          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         run: |
           aws sagemaker delete-endpoint --endpoint-name ${EVENT_SHA:0:7}
           echo "Endpoint Destroyed: ${EVENT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"

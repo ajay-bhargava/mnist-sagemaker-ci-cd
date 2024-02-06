@@ -4,7 +4,6 @@ on:
     branches:
       - master
     types: [assigned, ready_for_review]
-  workflow_dispatch:
 
 jobs:
   check_endpoint:
@@ -24,7 +23,7 @@ jobs:
       - name: Run AWS CLI
         id: aws-cli
         env:
-          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         run: |
           ENDPOINT_DESCRIPTION=$(aws sagemaker list-endpoints --name-contains "${EVENT_SHA:0:7}" --query "Endpoints[0].EndpointName")
           if [ "$ENDPOINT_DESCRIPTION" = null ] ; then
@@ -116,7 +115,7 @@ jobs:
         env:
           SAGEMAKER_IAM_ROLE: ${{secrets.SAGEMAKER_IAM_ROLE}}
           REPO_TOKEN: ${{ steps.github-app-token.outputs.token }}
-          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
+          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         id: deploy
         run: |
           poetry run python3 ./src/mnist_sagemaker_ci_cd/deploy.py
