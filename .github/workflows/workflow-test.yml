@@ -1,34 +1,30 @@
-name: Write Repo Deployment SHA
+name: Destroy Endpoint
 on:
   workflow_dispatch:
 
 jobs:
-  write-deployment-sha:
-    name: Write Output
+  destroy_endpoint:
+    # this job will only run if the PR has been closed without being merged
+    name: Destroy Sagemaker Endpoint
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+      id-token: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.1.1
-
-      - name: Write Deployment SHA to .env file
-        env: 
-          DEPLOY_VALUE: "05c0763"
-        run: |
-          touch -c .env
-          echo "DEPLOY_SHA=$DEPLOY_VALUE" >> .env
-        working-directory: ./src/serverless
-
-      - name: Commit and Push Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Configure AWS Credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          commit_message: "chore: update Serverless Deployment SHA"
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          # Use Github OIDC provider to assume the role
+          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          aws-region: us-east-1
+
+      - name: Destroy Sagemaker Endpoint
+        id: destroy_endpoint
+        env:
+          EVENT_SHA: "05c076329917ea8566c828708db693fd5a125932"
+        run: |
+          aws sagemaker delete-endpoint --endpoint-name ${EVENT_SHA:0:7}
+          echo "Endpoint Destroyed: ${EVENT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
 
       
     
