@@ -41,6 +41,7 @@ jobs:
       #       Deploy Serverless
       #----------------------------------------------
       - name: Deploy SLS Endpoint
+        id: deploy-sls
         env:
           DEPLOY_SHA: "05c0763"
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
@@ -48,12 +49,14 @@ jobs:
           npm install -g serverless
           npm ci
           serverless deploy --verbose
-          URL="$(serverless info --verbose | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g)"
+          URL="$(serverless info --verbose | grep endpoint | sed -n 's/^endpoint: ANY - //p')" >> "$GITHUB_OUTPUT"
           echo "Endpoint Deployed :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "| Endpoint | URL |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| API Gateway | [Here]($URL) |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Gateway | [Here]($URL/docs) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-        working-directory: ./src/serverless 
+        working-directory: ./src/serverless
+    outputs:
+      endpoint: ${{ steps.deploy-sls.outputs.URL }}
 
       
