@@ -6,7 +6,10 @@ jobs:
   write-deployment-sha:
     name: Write Output
     runs-on: ubuntu-latest
-    # needs: deploy_endpoint_to_lambda
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.1
