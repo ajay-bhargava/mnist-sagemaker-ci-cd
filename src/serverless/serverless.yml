@@ -9,8 +9,6 @@ useDotenv: true
 # The `service` block is the name of the service
 service: mnist-inference
 frameworkVersion: "3"
-org: withcontext
-app: mnist
 
 # The `provider` block defines where your service will be deployed
 provider:
