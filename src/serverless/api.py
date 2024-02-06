@@ -1,17 +1,22 @@
 """REST API."""
-try:  # noqa: SIM105
+try:
     import unzip_requirements  # noqa: F401
 except ImportError:
     pass
 import json
+import os
 
 import boto3
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile
 from mangum import Mangum
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
-ENDPOINT = "8qgf6d3"
+# Load .env file
+load_dotenv()
+
+ENDPOINT = os.getenv("DEPLOY_SHA")
 sagemaker_runtime = boto3.client("sagemaker-runtime")
 
 app = FastAPI(
