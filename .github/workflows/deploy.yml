@@ -50,11 +50,8 @@ jobs:
       - name: Deploy SLS Endpoint
         id: deploy-sls
         env:
-          DEPLOY_VALUE: ${{github.event.pull_request.head.sha}}
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
         run: |
-          touch -c .env
-          echo "DEPLOY_SHA=${DEPLOY_VALUE:0:7}" >> .env
           npm install -g serverless
           npm ci
           serverless deploy --verbose
@@ -65,33 +62,6 @@ jobs:
           echo "| API Gateway | [Here]($URL/docs) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
         working-directory: ./src/serverless
-  write-deployment-sha:
-    name: Write Output
-    runs-on: ubuntu-latest
-    needs: deploy_endpoint_to_lambda
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.1.1
-
-      - name: Write Deployment SHA to .env file
-        env: 
-          DEPLOY_VALUE: ${{github.event.pull_request.head.sha}}
-        run: |
-          touch -c .env
-          echo "DEPLOY_SHA=${DEPLOY_VALUE:0:7}" >> .env
-        working-directory: ./src/serverless
-
-      - name: Commit and Push Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update Serverless Deployment SHA"
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
   destroy_endpoint:
     # this job will only run if the PR has been closed without being merged
@@ -111,8 +81,8 @@ jobs:
 
       - name: Destroy Sagemaker Endpoint
         id: destroy_endpoint
-        env:
-          EVENT_SHA: ${{github.event.pull_request.head.sha}}
         run: |
-          aws sagemaker delete-endpoint --endpoint-name ${EVENT_SHA:0:7}
-          echo "Endpoint Destroyed: ${EVENT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
+          source .env
+          aws sagemaker delete-endpoint --endpoint-name ${DEPLOY_SHA:0:7}
+          echo "Endpoint Destroyed: ${DEPLOY_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
+        working-directory: ./src/serverless
