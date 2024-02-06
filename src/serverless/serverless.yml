@@ -1,14 +1,10 @@
 # Welcome to serverless. Read the docs
 # https://serverless.com/framework/docs/
-
-# Serverless.yml is the configuration the CLI
-# uses to deploy your code to your provider of choice
-
 useDotenv: true
-
-# The `service` block is the name of the service
-service: mnist-inference
+service: mnist-serverless-service
 frameworkVersion: "3"
+org: withcontext
+app: mnist-deploy
 
 # The `provider` block defines where your service will be deployed
 provider:

@@ -48,8 +48,12 @@ jobs:
           npm install -g serverless
           npm ci
           serverless deploy --verbose
+          URL="$(serverless info --verbose | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g)"
+          echo "Endpoint Deployed :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "| Endpoint | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| API Gateway | [Here]($URL) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
         working-directory: ./src/serverless 
 
-      - name: Report Success
-        run: |
-          echo "Endpoint has been deployed successfully." >> "$GITHUB_OUTPUT"
+      
