@@ -15,7 +15,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # Use Github OIDC provider to assume the role
-          role-to-assume: $${{secrets.AWS_ASSUME_ROLE_ARN}}
+          role-to-assume: ${{secrets.AWS_ASSUME_ROLE_ARN}}
           aws-region: us-east-1
 
       - name: Destroy Sagemaker Endpoint
