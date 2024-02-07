@@ -1,4 +1,4 @@
-name: Close Pull Request
+name: SLS Debug
 
 # only trigger on pull request closed events
 on:
