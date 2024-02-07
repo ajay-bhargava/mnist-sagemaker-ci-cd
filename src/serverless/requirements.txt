@@ -3,3 +3,4 @@ mangum
 starlette
 fastapi
 python-multipart
+python-dotenv

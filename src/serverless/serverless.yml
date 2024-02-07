@@ -12,18 +12,12 @@ provider:
   runtime: python3.9
   timeout: 29
   memorySize: 2048
-  environment:
-    SAGEMAKER_DEPLOYED_ENDPOINT: ${env:DEPLOY_SHA}
   iam:
     role:
       statements:
         - Effect: "Allow"
           Action: "sagemaker:*"
           Resource: "*"
-
-custom:
-  pythonRequirements:
-    zip: true
 
 # The `functions` block defines what code to deploy
 functions:
@@ -34,3 +28,4 @@ functions:
 
 plugins:
   - serverless-python-requirements
+  - serverless-dotenv-plugin
