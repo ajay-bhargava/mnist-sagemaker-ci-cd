@@ -154,3 +154,4 @@ jobs:
           npm ci
           serverless remove --verbose
           echo "Serverless Endpoint ${DEPLOY_SHA:0:7} Destroyed :fire:" >> $GITHUB_STEP_SUMMARY
+        working-directory: ./src/serverless
