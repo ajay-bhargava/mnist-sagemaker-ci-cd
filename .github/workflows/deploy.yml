@@ -82,6 +82,12 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          sparse-checkout: "src/serverless/"
+          sparse-checkout-cone-mode: false
+
       - name: Configure AWS Credentials
         id: aws-credentials
         uses: aws-actions/configure-aws-credentials@v4
