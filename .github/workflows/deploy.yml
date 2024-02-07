@@ -8,19 +8,19 @@ on:
     types: [closed]
   workflow_dispatch:
     inputs:
-      deploy: # this input will be used to trigger the deploy job
-        description: "Deploy the endpoint and lambda to public API Gateway"
-        required: false
-        default: "false"
-      destroy:
-        description: "Destroy the endpoint"
-        required: false
-        default: "false"
+      action:
+        description: "Action to perform"
+        required: true
+        type: choice
+        default: "deploy"
+        options:
+          - "deploy"
+          - "destroy"
 
 jobs:
   deploy_endpoint_to_lambda:
     # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true || github.event_name == 'deploy'
+    if: github.event.pull_request.merged == true || inputs.action == 'deploy'
     name: Deploy Endpoint and Lambda to Public API Gateway
     runs-on: ubuntu-latest
     strategy:
@@ -76,7 +76,7 @@ jobs:
 
   destroy_endpoint:
     # this job will only run if the PR has been closed without being merged
-    if: github.event.pull_request.merged == false || github.event_name == 'destroy'
+    if: github.event.pull_request.merged == false || inputs.action == 'destroy'
     name: Destroy Sagemaker Endpoint
     runs-on: ubuntu-latest
     permissions:
